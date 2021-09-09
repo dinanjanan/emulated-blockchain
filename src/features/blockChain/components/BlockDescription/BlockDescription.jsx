@@ -4,7 +4,7 @@ import {
 	BlockMessage,
 	TimeStamp,
 	BlockDescriptionContainer,
-} from './BlockDescriptionStyles';
+} from './BlockDescription.styles';
 
 const BlockDescription = ({ index, timeStamp }) => {
 	const message = index === 0 ? 'GENESIS BLOCK' : `BLOCK #${index}`;

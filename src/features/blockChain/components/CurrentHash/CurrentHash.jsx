@@ -1,13 +1,13 @@
 import React from 'react';
-import P from '../../../../components/P/P';
+import Paragraph from '../../../../components/Paragraph/Paragraph';
 
-import { CurrentHashValue, CurrentHashContainer } from './CurrentHashStyles';
+import { CurrentHashValue, CurrentHashContainer } from './CurrentHash.styles';
 
-const CurrentHash = ({ hash }) => {
+const CurrentHash = ({ hash, isValidHash }) => {
 	return (
 		<CurrentHashContainer>
-			<P>HASH</P>
-			<CurrentHashValue>{hash}</CurrentHashValue>
+			<Paragraph>HASH</Paragraph>
+			<CurrentHashValue isValidHash={isValidHash}>{hash}</CurrentHashValue>
 		</CurrentHashContainer>
 	);
 };

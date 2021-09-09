@@ -13,7 +13,7 @@ export const GlobalStyles = createGlobalStyle`
         background-color: #f9f9fb;
         color: rgba(0, 0, 0, 0.65);
         font-family: 'IBM Plex Sans', sans-serif;
-        padding: 20px 30px 50px;
+        padding: 20px 60px 50px;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
     }

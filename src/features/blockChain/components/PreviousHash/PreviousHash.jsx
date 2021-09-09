@@ -1,12 +1,17 @@
 import React from 'react';
-import P from '../../../../components/P/P';
-import { PreviousHashValue, PreviousHashContainer } from './PreviousHashStyles';
+import Paragraph from '../../../../components/Paragraph/Paragraph';
+import {
+	PreviousHashValue,
+	PreviousHashContainer,
+} from './PreviousHash.styles';
 
-const PreviousHash = ({ previousHash }) => {
+const PreviousHash = ({ previousHash, isValidHash }) => {
 	return (
 		<PreviousHashContainer>
-			<P>PREVIOUS HASH</P>
-			<PreviousHashValue>{previousHash}</PreviousHashValue>
+			<Paragraph>PREVIOUS HASH</Paragraph>
+			<PreviousHashValue isValidHash={isValidHash}>
+				{previousHash}
+			</PreviousHashValue>
 		</PreviousHashContainer>
 	);
 };

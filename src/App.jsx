@@ -1,18 +1,20 @@
 import React from 'react';
 
 import BlockChain from './features/blockChain/BlockChain';
-import AddNewBlock from './features/addNewBlock/AddNewBlock';
-import Logo from './components/Logo/Logo';
+import AddNewBlock from './features/blockChain/components/AddNewBlock/AddNewBlock';
 
-import { Title, AppContainer } from './Styles/AppStyles';
-import { GlobalStyles } from './Styles/GlobalStyles';
+import Logo from './components/Logo/Logo';
+import Title from './components/Title/Title';
+
+import { AppContainer } from './styles/App.styles';
+import { GlobalStyles } from './styles/Global.styles';
 
 function App() {
 	return (
 		<AppContainer>
 			<GlobalStyles />
 			<Logo />
-			<Title>BLOCKCHAIN</Title>
+			<Title heading>BLOCKCHAIN</Title>
 			<BlockChain />
 			<AddNewBlock />
 		</AppContainer>

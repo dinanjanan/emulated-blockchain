@@ -1,12 +1,12 @@
 import styled from 'styled-components';
 
 export const CurrentHashValue = styled.span`
-	color: #52c41a;
+	color: ${props => (props.isValidHash ? '#52c41a' : '#f5222d')};
 	font-family: 'Courier New', Courier, monospace;
 	font-size: 15px;
 	margin-left: 20px;
-	background-color: #f6ffed;
-	border-color: #b7eb8f;
+	background-color: ${props => (props.isValidHash ? '#f6ffed' : '#fff1f0')};
+	border-color: ${props => (props.isValidHash ? '#b7eb8f' : '#ffa39e')};
 	border: 1px solid;
 	padding: 3px 7px 0;
 	text-underline-offset: 0;

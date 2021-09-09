@@ -5,7 +5,8 @@ import {
 	LabelContainer,
 	InputField,
 	InputFieldContainer,
-} from './InputStyles';
+} from './Input.styles';
+
 // import fileIcon from '../../assets/file.png';
 
 const Input = ({ labelText, ...otherInputProps }) => {

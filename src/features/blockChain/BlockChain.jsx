@@ -1,34 +1,26 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 
 import Block from './components/Block/Block';
 import DownChevron from './components/DownChevron/DownChevron';
 
-import { BlockChainContainer } from './BlockChainStyles';
+import { selectAllBlocks } from './blockChain.slice';
+
+import { BlockChainContainer, BlockWithChevron } from './BlockChain.styles';
 
 const BlockChain = () => {
-	return (
-		<BlockChainContainer>
-			<Block
-				index={0}
-				previousHash={
-					'000f644f33d5073884cd8dde9e7011776c5b23436d98731fb8cd537960b6858b'
-				}
-				timeStamp={'2021-09-06T14:20:27.462Z'}
-				// timeStamp={'Mon, 06 Sep 2021 12:46:14 GMT'}
-				nonce={2142}
-			/>
-			<DownChevron />
-			<Block
-				index={1}
-				previousHash={
-					'000f644f33d5073884cd8dde9e7011776c5b23436d98731fb8cd537960b6858b'
-				}
-				timeStamp={'2021-09-06T14:20:27.462Z'}
-				// timeStamp={'Mon, 06 Sep 2021 12:46:14 GMT'}
-				nonce={2142}
-			/>
-		</BlockChainContainer>
-	);
+	const blocks = useSelector(selectAllBlocks);
+
+	const renderedBlocks = blocks.map((block, i) => {
+		return (
+			<BlockWithChevron key={block.index}>
+				<Block {...block} />
+				{i === blocks.length - 1 ? null : <DownChevron />}
+			</BlockWithChevron>
+		);
+	});
+
+	return <BlockChainContainer>{renderedBlocks}</BlockChainContainer>;
 };
 
 export default BlockChain;

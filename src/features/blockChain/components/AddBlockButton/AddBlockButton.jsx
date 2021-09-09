@@ -1,10 +1,10 @@
 import React from 'react';
 
-import { AddBlockButtonContainer } from './AddBlockButtonStyles';
+import { AddBlockButtonContainer } from './AddBlockButton.styles';
 
-const AddBlockButton = () => {
+const AddBlockButton = ({ onClick }) => {
 	return (
-		<AddBlockButtonContainer>
+		<AddBlockButtonContainer onClick={onClick}>
 			<span className="plus--icon">+</span> ADD NEW BLOCK
 		</AddBlockButtonContainer>
 	);

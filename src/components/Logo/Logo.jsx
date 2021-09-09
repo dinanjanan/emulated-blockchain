@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyledLogo } from './LogoStyles';
+import { StyledLogo } from './Logo.styles';
 
 import logo from '../../assets/logo.png';
 
