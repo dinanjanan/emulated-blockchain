@@ -52,32 +52,3 @@ export const generateBlock = ({ index, data, previousHash }) => {
 
 	return { index, data, timeStamp, hash, previousHash, nonce };
 };
-
-/**
- * Checks the validity of the blockchain. Must be called every time the data in a block is
- * mutated.
- *
- * @param {{ index, data, timeStamp, hash, previousHash, nonce }[]} blockChain
- *  An array of the blocks sorted by block index.
- * @returns {number|null}
- * 	The index of the invalid block, or null if the block is valid.
- */
-export const checkBlockchainValidity = (block, updatedData) => {
-	const { index, timeStamp, hash, previousHash, nonce } = block;
-
-	const recomputedHash = computeHash(
-		index,
-		updatedData,
-		timeStamp,
-		previousHash,
-		nonce
-	);
-	console.log(hash, recomputedHash);
-	if (hash !== recomputedHash) {
-		return index;
-	}
-
-	return null;
-};
-
-// TODO - Refactor checking blockchain validity into redux middleware.
