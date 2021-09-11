@@ -4,12 +4,12 @@ import { useSelector } from 'react-redux';
 import Block from './components/Block/Block';
 import DownChevron from './components/DownChevron/DownChevron';
 
-import { selectAllBlocks } from './blockChain.slice';
+import { selectAllBlocksForCurrentPeer } from './blockChain.slice';
 
 import { BlockChainContainer, BlockWithChevron } from './BlockChain.styles';
 
 const BlockChain = () => {
-	const blocks = useSelector(selectAllBlocks);
+	const blocks = useSelector(selectAllBlocksForCurrentPeer);
 
 	const renderedBlocks = blocks.map((block, i) => {
 		return (

@@ -7,7 +7,7 @@ import reportWebVitals from './reportWebVitals';
 import { Provider } from 'react-redux';
 import { configureAppStore } from './app/store.js';
 
-export const store = configureAppStore({});
+const store = configureAppStore({});
 
 ReactDOM.render(
 	<React.StrictMode>

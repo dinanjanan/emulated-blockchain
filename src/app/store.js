@@ -1,7 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
-import blockChainReducer, {
-	mineBlock,
-} from '../features/blockChain/blockChain.slice';
+import blockChainReducer from '../features/blockChain/blockChain.slice';
 
 const rootReducer = {
 	blockChain: blockChainReducer,
@@ -28,9 +26,6 @@ export const configureAppStore = preloadedState => {
 	if (process.env.NODE_ENV !== 'production' && module.hot) {
 		updateReducerOnHotModule(store, rootReducer, 'blockChain');
 	}
-
-	// Initialize the blockchain by mining the genesis block.
-	store.dispatch(mineBlock('Welcome to Blockchain Demo 2.0!'));
 
 	return store;
 };

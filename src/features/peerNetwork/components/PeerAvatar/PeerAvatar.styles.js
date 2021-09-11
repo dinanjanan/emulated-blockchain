@@ -11,7 +11,7 @@ export const PeerAvatarContainer = styled.div`
 	padding: 10px 15px;
 
 	& + * {
-		margin-left: 82px;
+		margin-left: 52px;
 	}
 
 	.circle-avatar__container {
@@ -35,8 +35,8 @@ export const PeerOptions = styled.div`
 
 export const PeerOption = styled.div`
 	border-radius: 50%;
-	height: 24px;
-	width: 24px;
+	height: 21px;
+	width: 21px;
 	background-color: #fff;
 	border: 1px solid rgba(0, 0, 0, 0.25);
 	box-shadow: rgba(0, 0, 0, 0.07) 0 0 10px;

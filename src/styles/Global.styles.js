@@ -14,6 +14,7 @@ export const GlobalStyles = createGlobalStyle`
         color: rgba(0, 0, 0, 0.65);
         font-family: 'IBM Plex Sans', sans-serif;
         padding: 20px 60px 50px;
+        /* overflow: hidden; */
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
     }

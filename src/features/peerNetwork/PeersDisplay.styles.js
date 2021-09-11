@@ -16,6 +16,8 @@ export const PeersList = styled.div`
 	justify-content: flex-start;
 	align-items: center;
 	margin-left: 20px;
+	width: calc(100vw - 210px);
+	overflow: hidden;
 `;
 
 export const AddPeerButton = styled.div`
@@ -23,14 +25,24 @@ export const AddPeerButton = styled.div`
 	padding: 10px 20px;
 	border-radius: 4px;
 	width: fit-content;
-	max-width: 120px;
+	max-width: 110px;
 	max-height: 40px;
+	min-width: 110px;
+	min-height: 40px;
 	transition: all 500ms ease;
 	cursor: pointer;
 	color: #ffffff;
 	text-align: center;
+	z-index: 5;
 
 	&:hover {
 		opacity: 0.8;
 	}
+`;
+
+export const PeersListContainer = styled.div`
+	width: calc(100vw - 300px);
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
 `;

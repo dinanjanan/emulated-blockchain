@@ -15,3 +15,9 @@ export const ConnectionStates = {
 		color: '#108ee9',
 	},
 };
+
+export const OperationStates = {
+	pending: 'pending',
+	complete: 'complete',
+	failed: 'failed',
+};
