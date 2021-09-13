@@ -1,55 +1,71 @@
 import React from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import CircleAvatar from '../CircleAvatar/CircleAvatar';
 import Paragraph from '../../../../components/Paragraph/Paragraph';
 
-import {
-	PeerAvatarContainer,
-	PeerOptions,
-	PeerOption,
-} from './PeerAvatar.styles';
 import { ConnectionStates } from '../../../../app/constants';
-import { removePeer } from '../../../blockChain/blockChain.slice';
+import {
+  removePeer,
+  selectPeerCount,
+} from '../../../blockChain/blockChain.slice';
 
-const PeerAvatar = ({ connectionState, name, peerId }) => {
-	const dispatch = useDispatch();
+import {
+  PeerAvatarContainer,
+  PeerOptions,
+  PeerOption,
+} from './PeerAvatar.styles';
 
-	let connectOptionHoverColor;
-	switch (connectionState) {
-		case ConnectionStates.connected:
-		case ConnectionStates.currentlyActive:
-			connectOptionHoverColor = ConnectionStates.disconnected.color;
-			break;
-		case ConnectionStates.disconnected:
-			connectOptionHoverColor = ConnectionStates.connected.color;
-			break;
-		default:
-			// Default to the color of the current connection state. This code should be unreachable.
-			connectOptionHoverColor = connectionState.color;
-	}
+const PeerAvatar = ({ connectionState, name, peerId, visible, onClick }) => {
+  const dispatch = useDispatch();
 
-	const onRemovePeerClicked = () => dispatch(removePeer({ peerId }));
+  let connectOptionHoverColor;
+  switch (connectionState) {
+    case ConnectionStates.connected:
+    case ConnectionStates.currentlyActive:
+      connectOptionHoverColor = ConnectionStates.disconnected.color;
+      break;
+    case ConnectionStates.disconnected:
+      connectOptionHoverColor = ConnectionStates.connected.color;
+      break;
+    default:
+      // Default to the color of the current connection state. This code should be unreachable.
+      connectOptionHoverColor = connectionState.color;
+  }
 
-	return (
-		<PeerAvatarContainer color={connectionState.color} isSelected>
-			<span className="circle-avatar__container">
-				<CircleAvatar connectionState={connectionState} />
-				<span className="circle-avatar__cross" onClick={onRemovePeerClicked}>
-					&#215;
-				</span>
-			</span>
-			<Paragraph style={{ textOverflow: 'ellipsis' }}>{name}</Paragraph>
-			<PeerOptions>
-				<PeerOption hoverColor={connectOptionHoverColor}>
-					<i className="fas fa-link" />
-				</PeerOption>
-				<PeerOption hoverColor={ConnectionStates.connected.color}>
-					<i className="far fa-comment-dots" />
-				</PeerOption>
-			</PeerOptions>
-		</PeerAvatarContainer>
-	);
+  const numPeers = useSelector(selectPeerCount);
+  const onRemovePeerClicked = () => {
+    console.log('numPeers:', numPeers);
+    if (numPeers > 1) dispatch(removePeer({ peerId }));
+    else
+      console.log(
+        '[WARN] Cannot remove peer. Only one peer exists in the application.'
+      );
+  };
+
+  return (
+    <PeerAvatarContainer
+      color={connectionState.color}
+      isSelected
+      onClick={onClick}
+    >
+      <span className="circle-avatar__container">
+        <CircleAvatar connectionState={connectionState} />
+        <span className="circle-avatar__cross" onClick={onRemovePeerClicked}>
+          &#215;
+        </span>
+      </span>
+      <Paragraph style={{ textOverflow: 'ellipsis' }}>{name}</Paragraph>
+      <PeerOptions>
+        <PeerOption hoverColor={connectOptionHoverColor}>
+          <i className="fas fa-link" />
+        </PeerOption>
+        <PeerOption hoverColor={ConnectionStates.connected.color}>
+          <i className="far fa-comment-dots" />
+        </PeerOption>
+      </PeerOptions>
+    </PeerAvatarContainer>
+  );
 };
 
 export default PeerAvatar;
