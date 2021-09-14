@@ -16,7 +16,19 @@ import {
   PeerOption,
 } from './PeerAvatar.styles';
 
-const PeerAvatar = ({ connectionState, name, peerId, visible, onClick }) => {
+type PeerAvatarProps = {
+  connectionState: typeof ConnectionStates[keyof typeof ConnectionStates];
+  name: string;
+  peerId: string;
+  onClick: React.MouseEventHandler<HTMLDivElement>;
+};
+
+const PeerAvatar: React.FC<PeerAvatarProps> = ({
+  connectionState,
+  name,
+  peerId,
+  onClick,
+}) => {
   const dispatch = useDispatch();
 
   let connectOptionHoverColor;
@@ -39,7 +51,7 @@ const PeerAvatar = ({ connectionState, name, peerId, visible, onClick }) => {
     if (numPeers > 1) dispatch(removePeer({ peerId }));
     else
       console.log(
-        '[WARN] Cannot remove peer. Only one peer exists in the application.'
+        '[WARN] Cannot remove peer. Only one peer exists in the application.',
       );
   };
 

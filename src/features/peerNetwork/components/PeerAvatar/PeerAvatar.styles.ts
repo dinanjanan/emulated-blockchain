@@ -1,6 +1,15 @@
 import styled from 'styled-components';
 
-export const PeerAvatarContainer = styled.div`
+type PeerAvatarContainerProps = {
+  isSelected: boolean;
+  color: string;
+};
+
+type PeerOptionProps = {
+  hoverColor: string;
+};
+
+export const PeerAvatarContainer = styled.div<PeerAvatarContainerProps>`
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -33,7 +42,7 @@ export const PeerOptions = styled.div`
   display: flex;
 `;
 
-export const PeerOption = styled.div`
+export const PeerOption = styled.div<PeerOptionProps>`
   border-radius: 50%;
   height: 21px;
   width: 21px;
