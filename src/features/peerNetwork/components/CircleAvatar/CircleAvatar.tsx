@@ -1,5 +1,5 @@
 import React from 'react';
-import styled, { CSSProp } from 'styled-components';
+import styled from 'styled-components';
 
 import { ConnectionStates } from '../../../../app/constants';
 

@@ -12,16 +12,16 @@ import { updateLatestBlockHashes, reMineBlock } from '../../blockChain.slice';
 import { isValidHash } from '../../utils';
 
 import { BlockContainer, BlockFooter } from './Block.styles';
-import { Block } from '../../interfaces/BlockChain';
+import { Block as BlockModel } from '../../interfaces/BlockChain';
 
-const Block = ({
+const Block: React.FC<BlockModel> = ({
   index,
   previousHash,
   hash,
   data,
   timeStamp,
   nonce,
-}: Block) => {
+}) => {
   const dispatch = useAppDispatch();
   const [inputData, setInputData] = useState(data);
 

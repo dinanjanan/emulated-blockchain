@@ -42,7 +42,7 @@ export const fetchPeerData = createAsyncThunk(
       name: name.first,
       id: login.uuid,
     } as PeerFromAPI;
-  }
+  },
 );
 
 const blockChainSlice = createSlice({
@@ -51,7 +51,7 @@ const blockChainSlice = createSlice({
   reducers: {
     mineBlock(state, { payload: data }: { payload: string }) {
       console.log('current peer:', state.activePeer);
-      const activeBlockChain = state.entities[state.activePeer].blockChain;
+      const activeBlockChain = state.entities[state.activePeer]!.blockChain;
       const previousBlock = Object.values(activeBlockChain).at(-1);
 
       console.log('previousBlock', previousBlock);
@@ -79,9 +79,9 @@ const blockChainSlice = createSlice({
     },
     reMineBlock(
       state,
-      { payload: { data, previousHash, index } }: { payload: UnhashedBlock }
+      { payload: { data, previousHash, index } }: { payload: UnhashedBlock },
     ) {
-      const activeBlockChain = state.entities[state.activePeer].blockChain;
+      const activeBlockChain = state.entities[state.activePeer]!.blockChain;
       const block = generateBlock({ index, data, previousHash });
 
       if (index < Object.keys(activeBlockChain).length - 1) {
@@ -94,7 +94,7 @@ const blockChainSlice = createSlice({
           data,
           timeStamp,
           previousHash,
-          nonce
+          nonce,
         );
       }
       activeBlockChain[index] = block;
@@ -105,18 +105,18 @@ const blockChainSlice = createSlice({
       state,
       {
         payload: { invalidIndex, newData },
-      }: { payload: { invalidIndex: number; newData: string } }
+      }: { payload: { invalidIndex: number; newData: string } },
     ) {
-      const activeBlockChain = state.entities[state.activePeer].blockChain;
+      const activeBlockChain = state.entities[state.activePeer]!.blockChain;
       const invalidatorBlock = activeBlockChain[invalidIndex];
 
       const invalidBlocks = Object.values(activeBlockChain).filter(
-        block => block.index >= invalidIndex
+        block => block.index >= invalidIndex,
       );
 
       invalidatorBlock.data = newData;
       const updatedBlocks = invalidBlocks.map((block, i) => {
-        if (i > 0) block.previousHash = invalidBlocks.at(i - 1).hash;
+        if (i > 0) block.previousHash = invalidBlocks.at(i - 1)!.hash;
         const { index, data, timeStamp, previousHash, nonce } = block;
         block.hash = computeHash(index, data, timeStamp, previousHash, nonce);
 
@@ -132,7 +132,7 @@ const blockChainSlice = createSlice({
         .map(id => state.entities[id]);
 
       state.entities = {};
-      peerEntities.forEach(peer => (state.entities[peer.id] = peer));
+      peerEntities.forEach(peer => peer && (state.entities[peer.id] = peer));
 
       state.activePeer = peerIds[peerIds.indexOf(payload.peerId) - 1];
     },
@@ -141,19 +141,34 @@ const blockChainSlice = createSlice({
     },
     connectWithPeer(state, { payload }: { payload: { peerId: string } }) {
       // Get active peer blockchain
-      const activeBlockChain = state.entities[state.activePeer].blockChain;
+      const activeBlockChain = state.entities[state.activePeer]!.blockChain;
 
       // Connect with the peer
       const connectedPeer = state.entities[payload.peerId];
 
       let blockChainValidated = false;
 
+      if (!connectedPeer) {
+        // Handle connection failure
+        console.error(
+          `[ERROR] There was an issue connecting with peer #${payload.peerId}`,
+        );
+
+        return;
+      }
+
       while (!blockChainValidated) {
         // Retrieve the connected peer's and the active peer's latest block
-        const peerLatestBlock = Object.values(
-          connectedPeer.blockChain
-        ).lastItem;
-        const activePeerLatestBlock = Object.values(activeBlockChain).lastItem;
+        const peerLatestBlock = Object.values(connectedPeer.blockChain).at(-1);
+        const activePeerLatestBlock = Object.values(activeBlockChain).at(-1);
+
+        if (!peerLatestBlock || !activePeerLatestBlock) {
+          // Both blockchains are empty: which under normal execution should be impossible.
+          console.log(
+            '[INFO] Either connected peer or active peer cannot retrieve latest block.',
+          );
+          return;
+        }
 
         let shouldBroadcastLatestBlock = false;
 
@@ -171,23 +186,23 @@ const blockChainSlice = createSlice({
           // connectedPeer.blockChain
 
           const isPeerBlockChainValid = Object.values(
-            connectedPeer.blockChain
+            connectedPeer.blockChain,
           ).reduce(
             (
-              isValid,
-              { index, data, timeStamp, previousHash, nonce, hash }
+              previousBlocksValid,
+              { index, data, timeStamp, previousHash, nonce, hash },
             ) => {
               const reComputedHash = computeHash(
                 index,
                 data,
                 timeStamp,
                 previousHash,
-                nonce
+                nonce,
               );
 
-              return reComputedHash === hash;
+              return previousBlocksValid && reComputedHash === hash;
             },
-            false
+            false,
           );
 
           if (
@@ -242,22 +257,22 @@ const selectBlockChainSlice = (state: RootState) => state.blockChain;
 
 export const selectActivePeer = createSelector(
   [selectBlockChainSlice],
-  blockChain => blockChain.activePeer
+  blockChain => blockChain.activePeer,
 );
 
 export const selectActivePeerBlockChain = createSelector(
   [selectBlockChainSlice],
-  peers => peers.entities[peers.activePeer].blockChain
+  peers => peers.entities[peers.activePeer]?.blockChain ?? {},
 );
 
 export const selectBlockIndexes = createSelector(
   [selectActivePeerBlockChain],
-  blockChain => Object.keys(blockChain)
+  blockChain => Object.keys(blockChain),
 );
 
 export const selectAllBlocksForCurrentPeer = createSelector(
   [selectActivePeerBlockChain],
-  blockChain => Object.values(blockChain)
+  blockChain => Object.values(blockChain),
 );
 
 export const selectBlockByIndexForCurrentPeer = (index: number) =>
@@ -265,22 +280,22 @@ export const selectBlockByIndexForCurrentPeer = (index: number) =>
 
 export const selectBlockChainSetUpState = createSelector(
   [selectBlockChainSlice],
-  blockChain => blockChain.setUpState
+  blockChain => blockChain.setUpState,
 );
 
 export const selectAllPeers = createSelector([selectBlockChainSlice], peers =>
-  Object.values(peers.entities)
+  Object.values(peers.entities),
 );
 
 export const selectPeerById = (peerId: string) =>
   createSelector(
     [selectBlockChainSlice],
-    blockChain => blockChain.entities[peerId]
+    blockChain => blockChain.entities[peerId],
   );
 
 export const selectPeerCount = createSelector(
   [selectBlockChainSlice],
-  peers => Object.keys(peers.entities).length
+  peers => Object.keys(peers.entities).length,
 );
 
 // Actions

@@ -25,7 +25,7 @@ export const computeHash = (
   data: string,
   timeStamp: number,
   prevHash: string,
-  nonce: number
+  nonce: number,
 ): string => {
   const hash = crypto
     .createHash('sha256')
@@ -50,7 +50,7 @@ export const generateBlock = ({
 }: UnhashedBlock): Block => {
   let hash = '';
   let nonce = 0;
-  let timeStamp: number;
+  let timeStamp: number = Date.now();
 
   while (!isValidHash(hash)) {
     timeStamp = Date.now();
