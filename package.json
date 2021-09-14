@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": "v16.8.0",
-    "npm": "7.21.0",
-    "yarn": "1.22.11"
+    "node": ">= v16.8.0",
+    "npm": ">= 7.21.0",
+    "yarn": ">= 1.22.11"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.6.1",
