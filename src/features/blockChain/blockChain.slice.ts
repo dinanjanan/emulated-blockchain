@@ -51,7 +51,16 @@ const blockChainSlice = createSlice({
   reducers: {
     mineBlock(state, { payload: data }: { payload: string }) {
       console.log('current peer:', state.activePeer);
-      const activeBlockChain = state.entities[state.activePeer]!.blockChain;
+      const activeBlockChain = state.entities[state.activePeer]?.blockChain;
+
+      if (!activeBlockChain) {
+        console.error(
+          `[ERROR] The active peer does not exist. Therefore, the active blockchain cannot be retrieved and the new block could not be mined.`,
+        );
+
+        return;
+      }
+
       const previousBlock = Object.values(activeBlockChain).at(-1);
 
       console.log('previousBlock', previousBlock);
@@ -81,7 +90,16 @@ const blockChainSlice = createSlice({
       state,
       { payload: { data, previousHash, index } }: { payload: UnhashedBlock },
     ) {
-      const activeBlockChain = state.entities[state.activePeer]!.blockChain;
+      const activeBlockChain = state.entities[state.activePeer]?.blockChain;
+
+      if (!activeBlockChain) {
+        console.error(
+          `[ERROR] The active peer does not exist. Therefore, the active blockchain cannot be retrieved and the invalidated block could not be re-mined.`,
+        );
+
+        return;
+      }
+
       const block = generateBlock({ index, data, previousHash });
 
       if (index < Object.keys(activeBlockChain).length - 1) {
@@ -107,7 +125,16 @@ const blockChainSlice = createSlice({
         payload: { invalidIndex, newData },
       }: { payload: { invalidIndex: number; newData: string } },
     ) {
-      const activeBlockChain = state.entities[state.activePeer]!.blockChain;
+      const activeBlockChain = state.entities[state.activePeer]?.blockChain;
+
+      if (!activeBlockChain) {
+        console.error(
+          `[ERROR] The active peer does not exist. Therefore, the active blockchain cannot be retrieved and the block hases could not be updated.`,
+        );
+
+        return;
+      }
+
       const invalidatorBlock = activeBlockChain[invalidIndex];
 
       const invalidBlocks = Object.values(activeBlockChain).filter(
