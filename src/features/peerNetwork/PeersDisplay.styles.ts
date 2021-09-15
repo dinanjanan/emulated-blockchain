@@ -1,11 +1,4 @@
-import styled, { keyframes } from 'styled-components';
-
-const shiftLeft = numElementsHidden => keyframes`
-`;
-
-const shiftRight = numElementsHidden => keyframes`
-  }
-`;
+import styled from 'styled-components';
 
 export const PeersDisplayContainer = styled.div`
   width: 100%;
@@ -52,18 +45,6 @@ export const PeersListContainer = styled.div`
   display: flex;
   justify-content: flex-start;
   align-items: center;
-`;
-
-export const PeersListAnimationContainer = styled.div`
-  animation-name: ${props =>
-    props.slideInOrOut === 'out'
-      ? shiftRight(props.numElementsHidden)
-      : shiftLeft(props.numElementsHidden)};
-  animation-duration: 500ms;
-  animation-fill-mode: forwards;
-  animation-iteration-count: 1;
-  animation-play-state: paused;
-  /* animation-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1); */
 `;
 
 export const SideChevronContainer = styled.div`

@@ -129,7 +129,7 @@ const blockChainSlice = createSlice({
 
       if (!activeBlockChain) {
         console.error(
-          `[ERROR] The active peer does not exist. Therefore, the active blockchain cannot be retrieved and the block hases could not be updated.`,
+          `[ERROR] The active peer does not exist. Therefore, the active blockchain cannot be retrieved and the block hashes could not be updated.`,
         );
 
         return;
@@ -153,22 +153,31 @@ const blockChainSlice = createSlice({
       updatedBlocks.forEach(block => (activeBlockChain[block.index] = block));
     },
     removePeer(state, { payload }: { payload: { peerId: string } }) {
-      const peerIds = Object.keys(state.entities);
-      const peerEntities = peerIds
-        .filter(id => id !== payload.peerId)
-        .map(id => state.entities[id]);
+      // Update the ids array
+      const idIdx = state.ids.indexOf(payload.peerId);
+      if (idIdx >= 0) state.ids.splice(idIdx, 1);
 
-      state.entities = {};
-      peerEntities.forEach(peer => peer && (state.entities[peer.id] = peer));
+      // Update the entities
+      delete state.entities[payload.peerId];
 
-      state.activePeer = peerIds[peerIds.indexOf(payload.peerId) - 1];
+      // Set the active peer
+      state.activePeer = state.ids[idIdx - 1] as string;
     },
-    setActivePeer(state, { payload }: { payload: { peerId: string } }) {
-      state.activePeer = payload.peerId;
+    setActivePeer(state, { payload: peerId }: { payload: string }) {
+      console.log('active peer to set:', peerId);
+      state.activePeer = peerId;
     },
     connectWithPeer(state, { payload }: { payload: { peerId: string } }) {
       // Get active peer blockchain
-      const activeBlockChain = state.entities[state.activePeer]!.blockChain;
+      const activeBlockChain = state.entities[state.activePeer]?.blockChain;
+
+      if (!activeBlockChain) {
+        console.error(
+          `[ERROR] The active peer does not exist. Aborting connection with peer.`,
+        );
+
+        return;
+      }
 
       // Connect with the peer
       const connectedPeer = state.entities[payload.peerId];
@@ -191,8 +200,8 @@ const blockChainSlice = createSlice({
 
         if (!peerLatestBlock || !activePeerLatestBlock) {
           // Both blockchains are empty: which under normal execution should be impossible.
-          console.log(
-            '[INFO] Either connected peer or active peer cannot retrieve latest block.',
+          console.error(
+            '[ERROR] Either connected peer or active peer cannot retrieve latest block.',
           );
           return;
         }
@@ -214,23 +223,18 @@ const blockChainSlice = createSlice({
 
           const isPeerBlockChainValid = Object.values(
             connectedPeer.blockChain,
-          ).reduce(
-            (
-              previousBlocksValid,
-              { index, data, timeStamp, previousHash, nonce, hash },
-            ) => {
-              const reComputedHash = computeHash(
-                index,
-                data,
-                timeStamp,
-                previousHash,
-                nonce,
-              );
+          ).reduce((previousBlocksValid, block) => {
+            const { index, data, timeStamp, previousHash, nonce, hash } = block;
+            const reComputedHash = computeHash(
+              index,
+              data,
+              timeStamp,
+              previousHash,
+              nonce,
+            );
 
-              return previousBlocksValid && reComputedHash === hash;
-            },
-            false,
-          );
+            return previousBlocksValid && reComputedHash === hash;
+          }, false);
 
           if (
             isPeerBlockChainValid &&
@@ -260,19 +264,43 @@ const blockChainSlice = createSlice({
         state.setUpState = OperationStates.failed;
       })
       .addCase(fetchPeerData.fulfilled, (state, { payload }) => {
-        // Set-up the blockChain for this peer.
+        // Set-up the peer's info and their version of the blockChain.
+
+        let settingUpFirstPeer = false;
+        // After the first peer is created, it is guaranteed that there will always be atleast one peer in the state.
+        if (state.ids.length === 0) settingUpFirstPeer = true;
+
+        const activeBlockChain = state.entities[state.activePeer]?.blockChain;
+
+        // Make sure the active peer's blockchain exists, as the app will not be able to function if otherwise.
+        if (!settingUpFirstPeer && !activeBlockChain) {
+          console.error(
+            `[ERROR] The active peer's blockchain does not exist. Unable to initialize new peer's blockchain with the already mined genesis block.`,
+          );
+          return;
+        }
+
+        // Create the peer.
+        state.ids.push(payload.id);
         state.entities[payload.id] = {
           id: payload.id,
           name: payload.name,
           blockChain: {},
         };
 
+        if (!settingUpFirstPeer) {
+          // Mining of the genesis block is done right after the the first peer is created.
+          // The already mined genesis block must be copied to this peer's blockchain.
+          state.entities[payload.id]!.blockChain[0] = activeBlockChain![0];
+        }
+
+        // Set the active peer.
         state.activePeer = payload.id;
 
-        // Mining of the genesis block is done after the the first peer is created.
-
-        // Acknowledge the app that the blockchain has been setup.
-        state.setUpState = OperationStates.complete;
+        if (settingUpFirstPeer) {
+          // Acknowledge the app that the blockchain has been setup.
+          state.setUpState = OperationStates.complete;
+        }
 
         console.log('[INFO] The current peer has been set');
       });
@@ -288,8 +316,8 @@ export const selectActivePeer = createSelector(
 );
 
 export const selectActivePeerBlockChain = createSelector(
-  [selectBlockChainSlice],
-  peers => peers.entities[peers.activePeer]?.blockChain ?? {},
+  [selectBlockChainSlice, selectActivePeer],
+  (peers, activePeer) => peers.entities[activePeer]?.blockChain ?? {},
 );
 
 export const selectBlockIndexes = createSelector(
@@ -302,7 +330,7 @@ export const selectAllBlocksForCurrentPeer = createSelector(
   blockChain => Object.values(blockChain),
 );
 
-export const selectBlockByIndexForCurrentPeer = (index: number) =>
+export const selectActivePeerBlockByIndex = (index: number) =>
   createSelector([selectActivePeerBlockChain], blockChain => blockChain[index]);
 
 export const selectBlockChainSetUpState = createSelector(
@@ -310,8 +338,22 @@ export const selectBlockChainSetUpState = createSelector(
   blockChain => blockChain.setUpState,
 );
 
-export const selectAllPeers = createSelector([selectBlockChainSlice], peers =>
-  Object.values(peers.entities),
+export const selectPeerIds = createSelector(
+  [selectBlockChainSlice],
+  peers => peers.ids,
+);
+
+export const selectPeersLookup = createSelector(
+  [selectBlockChainSlice],
+  peers => peers.entities,
+);
+
+export const selectAllPeers = createSelector(
+  [selectPeerIds, selectPeersLookup],
+  (peerIds, peersLookup) =>
+    peerIds
+      .map(id => peersLookup[id])
+      .filter(peer => peer !== undefined) as Peer[],
 );
 
 export const selectPeerById = (peerId: string) =>
@@ -321,8 +363,8 @@ export const selectPeerById = (peerId: string) =>
   );
 
 export const selectPeerCount = createSelector(
-  [selectBlockChainSlice],
-  peers => Object.keys(peers.entities).length,
+  [selectPeerIds],
+  peerIds => peerIds.length,
 );
 
 // Actions

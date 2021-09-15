@@ -8,7 +8,7 @@ import { selectAllBlocksForCurrentPeer } from './blockChain.slice';
 
 import { BlockChainContainer, BlockWithChevron } from './BlockChain.styles';
 
-const BlockChain = () => {
+const BlockChain: React.FC<{}> = () => {
   const blocks = useAppSelector(selectAllBlocksForCurrentPeer);
 
   const renderedBlocks = blocks.map((block, i) => {
