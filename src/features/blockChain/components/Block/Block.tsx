@@ -25,6 +25,9 @@ const Block: React.FC<BlockModel> = ({
   const dispatch = useAppDispatch();
   const [inputData, setInputData] = useState(data);
 
+  // When the active peer changes, we need to update the data in the input field to reflect the blockchain of the currently active peer.
+  if (data !== inputData) setInputData(data);
+
   const onInputChanged: React.ChangeEventHandler<HTMLInputElement> = e => {
     setInputData(e.target.value);
     dispatch(
