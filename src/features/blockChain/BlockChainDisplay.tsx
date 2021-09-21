@@ -6,9 +6,12 @@ import DownChevron from './components/DownChevron/DownChevron';
 import { useAppSelector } from '../../app/hooks';
 import { selectAllBlocksForCurrentPeer } from './blockChain.slice';
 
-import { BlockChainContainer, BlockWithChevron } from './BlockChain.styles';
+import {
+  BlockChainDisplayContainer,
+  BlockWithChevron,
+} from './BlockChainDisplay.styles';
 
-const BlockChain: React.FC<{}> = () => {
+const BlockChainDisplay: React.FC<{}> = () => {
   const blocks = useAppSelector(selectAllBlocksForCurrentPeer);
 
   const renderedBlocks = blocks.map((block, i) => {
@@ -20,7 +23,9 @@ const BlockChain: React.FC<{}> = () => {
     );
   });
 
-  return <BlockChainContainer>{renderedBlocks}</BlockChainContainer>;
+  return (
+    <BlockChainDisplayContainer>{renderedBlocks}</BlockChainDisplayContainer>
+  );
 };
 
-export default BlockChain;
+export default BlockChainDisplay;

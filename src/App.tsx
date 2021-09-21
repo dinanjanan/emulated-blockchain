@@ -8,7 +8,7 @@ import {
 import { useAppDispatch, useAppSelector } from './app/hooks';
 import { OperationStates } from './app/constants';
 
-import BlockChain from './features/blockChain/BlockChain';
+import BlockChainDisplay from './features/blockChain/BlockChainDisplay';
 import AddNewBlock from './features/blockChain/components/AddNewBlock/AddNewBlock';
 import PeersDisplay from './features/peerNetwork/PeersDisplay';
 
@@ -49,7 +49,7 @@ function App() {
       <Logo />
       <PeersDisplay />
       <Title heading>BLOCKCHAIN</Title>
-      <BlockChain />
+      <BlockChainDisplay />
       <AddNewBlock />
       <Credits />
     </AppContainer>

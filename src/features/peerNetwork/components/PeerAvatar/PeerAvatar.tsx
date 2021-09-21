@@ -1,5 +1,5 @@
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../../../../app/hooks';
 
 import CircleAvatar from '../CircleAvatar/CircleAvatar';
 import Paragraph from '../../../../components/Paragraph/Paragraph';
@@ -8,6 +8,7 @@ import { ConnectionStates } from '../../../../app/constants';
 import {
   removePeer,
   selectPeerCount,
+  connectWithPeer,
 } from '../../../blockChain/blockChain.slice';
 
 import {
@@ -29,7 +30,7 @@ const PeerAvatar: React.FC<PeerAvatarProps> = ({
   peerId,
   onClick,
 }) => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   let connectOptionHoverColor;
   switch (connectionState) {
@@ -45,7 +46,7 @@ const PeerAvatar: React.FC<PeerAvatarProps> = ({
       connectOptionHoverColor = connectionState.color;
   }
 
-  const numPeers = useSelector(selectPeerCount);
+  const numPeers = useAppSelector(selectPeerCount);
   const onRemovePeerClicked = () => {
     console.log('numPeers:', numPeers);
     if (numPeers > 1) dispatch(removePeer({ peerId }));
@@ -53,6 +54,10 @@ const PeerAvatar: React.FC<PeerAvatarProps> = ({
       console.log(
         '[WARN] Cannot remove peer. Only one peer exists in the application.',
       );
+  };
+
+  const onConnectWithPeerClicked = () => {
+    dispatch(connectWithPeer(peerId));
   };
 
   return (
@@ -69,7 +74,10 @@ const PeerAvatar: React.FC<PeerAvatarProps> = ({
       </span>
       <Paragraph style={{ textOverflow: 'ellipsis' }}>{name}</Paragraph>
       <PeerOptions>
-        <PeerOption hoverColor={connectOptionHoverColor}>
+        <PeerOption
+          hoverColor={connectOptionHoverColor}
+          onClick={onConnectWithPeerClicked}
+        >
           <i className="fas fa-link" />
         </PeerOption>
         <PeerOption hoverColor={ConnectionStates.connected.color}>

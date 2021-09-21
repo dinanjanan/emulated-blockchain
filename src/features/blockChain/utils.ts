@@ -18,7 +18,7 @@ export const isValidHash = (hash: string) => {
  * @param nonce The number of attempts to compute a valid hash. If `computeHash`
  * is being called when trying to find a valid hash, it represents the number of failed attempts
  * thus far.
- * @returns A SHA-256 hash of the provided data.
+ * @returns The SHA-256 hash of the provided data.
  */
 export const computeHash = (
   index: number,

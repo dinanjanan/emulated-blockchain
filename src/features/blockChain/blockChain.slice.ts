@@ -4,6 +4,7 @@ import {
   createAsyncThunk,
   createSelector,
 } from '@reduxjs/toolkit';
+import lodash from 'lodash';
 
 import { computeHash, generateBlock, isValidHash } from './utils';
 import { OperationStates } from '../../app/constants';
@@ -30,7 +31,7 @@ const initialState = blockChainAdapter.getInitialState({
 /**
  * Creates a peer with a random name obtained from the [randomuser.me](https://randomuser.me) API.
  */
-export const fetchPeerData = createAsyncThunk(
+export const fetchPeerData = createAsyncThunk<PeerFromAPI>(
   'peers/fetchPeerData',
   async () => {
     const res = await fetch('https://randomuser.me/api/?inc=name,login');
@@ -167,9 +168,9 @@ const blockChainSlice = createSlice({
       console.log('active peer to set:', peerId);
       state.activePeer = peerId;
     },
-    connectWithPeer(state, { payload }: { payload: { peerId: string } }) {
+    connectWithPeer(state, { payload: peerId }: { payload: string }) {
       // Get active peer blockchain
-      const activeBlockChain = state.entities[state.activePeer]?.blockChain;
+      let activeBlockChain = state.entities[state.activePeer]?.blockChain;
 
       if (!activeBlockChain) {
         console.error(
@@ -180,76 +181,80 @@ const blockChainSlice = createSlice({
       }
 
       // Connect with the peer
-      const connectedPeer = state.entities[payload.peerId];
-
-      let blockChainValidated = false;
+      const connectedPeer = state.entities[peerId];
 
       if (!connectedPeer) {
         // Handle connection failure
         console.error(
-          `[ERROR] There was an issue connecting with peer #${payload.peerId}`,
+          `[ERROR] There was an issue connecting with peer #${peerId}`,
         );
 
         return;
       }
 
-      while (!blockChainValidated) {
-        // Retrieve the connected peer's and the active peer's latest block
-        const peerLatestBlock = Object.values(connectedPeer.blockChain).at(-1);
-        const activePeerLatestBlock = Object.values(activeBlockChain).at(-1);
+      // debugger;
+      // while (!blockChainValidated) {
+      // Retrieve the connected peer's and the active peer's latest block
+      const peerLatestBlock = Object.values(connectedPeer.blockChain).at(-1);
+      const activePeerLatestBlock = Object.values(activeBlockChain).at(-1);
 
-        if (!peerLatestBlock || !activePeerLatestBlock) {
-          // Both blockchains are empty: which under normal execution should be impossible.
-          console.error(
-            '[ERROR] Either connected peer or active peer cannot retrieve latest block.',
+      if (!peerLatestBlock || !activePeerLatestBlock) {
+        // Both blockchains are empty: which under normal execution should be impossible.
+        console.error(
+          '[ERROR] Either connected peer or active peer cannot retrieve latest block.',
+        );
+        return;
+      }
+
+      let shouldBroadcastLatestBlock = false;
+
+      // Check if the peer is one block ahead
+      if (peerLatestBlock.previousHash === activePeerLatestBlock.hash) {
+        if (isValidHash(peerLatestBlock.hash)) {
+          // Append block to the blockchain.
+          activeBlockChain[peerLatestBlock.index] = peerLatestBlock;
+
+          // Broadcast latest block to connected peers.
+          shouldBroadcastLatestBlock = true;
+        }
+      } else if (peerLatestBlock.index > activePeerLatestBlock.index) {
+        // Ask peer for entire blockchain
+        // connectedPeer.blockChain
+
+        const isPeerBlockChainValid = Object.values(
+          connectedPeer.blockChain,
+        ).reduce((previousBlocksValid, block) => {
+          const { index, data, timeStamp, previousHash, nonce, hash } = block;
+          const reComputedHash = computeHash(
+            index,
+            data,
+            timeStamp,
+            previousHash,
+            nonce,
           );
-          return;
+
+          return previousBlocksValid && reComputedHash === hash;
+        }, true);
+
+        if (
+          isPeerBlockChainValid &&
+          Object.keys(connectedPeer.blockChain).length >
+            Object.keys(activeBlockChain).length
+        ) {
+          // Replace active peer's chain with that of the connected peer.
+          // state.entities[state.activePeer]!.blockChain
+          activeBlockChain = lodash.cloneDeep(connectedPeer.blockChain);
+
+          // Broadcast latest block to connected peers.
+          shouldBroadcastLatestBlock = true;
         }
+      }
 
-        let shouldBroadcastLatestBlock = false;
+      // The longest blockchain is considered the most up-to-date.
 
-        // Check if the peer is one block ahead
-        if (peerLatestBlock.previousHash === activePeerLatestBlock.hash) {
-          if (isValidHash(peerLatestBlock.hash)) {
-            // Append block to the blockchain.
-            activeBlockChain[peerLatestBlock.index] = peerLatestBlock;
-
-            // Broadcast latest block to connected peers.
-            shouldBroadcastLatestBlock = true;
-          }
-        } else if (peerLatestBlock.index > activePeerLatestBlock.index) {
-          // Ask peer for entire blockchain
-          // connectedPeer.blockChain
-
-          const isPeerBlockChainValid = Object.values(
-            connectedPeer.blockChain,
-          ).reduce((previousBlocksValid, block) => {
-            const { index, data, timeStamp, previousHash, nonce, hash } = block;
-            const reComputedHash = computeHash(
-              index,
-              data,
-              timeStamp,
-              previousHash,
-              nonce,
-            );
-
-            return previousBlocksValid && reComputedHash === hash;
-          }, false);
-
-          if (
-            isPeerBlockChainValid &&
-            Object.keys(connectedPeer.blockChain).length >
-              Object.keys(activeBlockChain).length
-          ) {
-            // Broadcast latest block to connected peers.
-            shouldBroadcastLatestBlock = true;
-          }
-        }
-
-        if (shouldBroadcastLatestBlock) {
-          // Perform the same for all connected peers. This time, the currently active peer will be the peer to connect with, and the connected peer will be assumed to be the
-          // active peer, as they have the outdated blockchain.
-        }
+      if (shouldBroadcastLatestBlock) {
+        // Perform the same for all connected peers. This time, the currently active peer will be the peer to connect with, and the connected peer will be assumed to be the
+        // active peer, as they have the outdated blockchain.
       }
     },
   },
@@ -295,11 +300,14 @@ const blockChainSlice = createSlice({
         }
 
         // Set the active peer.
-        state.activePeer = payload.id;
+        // blockChainSlice.caseReducers.setActivePeer(state, {
+        //   payload: payload.id,
+        // });
 
         if (settingUpFirstPeer) {
           // Acknowledge the app that the blockchain has been setup.
           state.setUpState = OperationStates.complete;
+          state.activePeer = payload.id;
         }
 
         console.log('[INFO] The current peer has been set');
@@ -374,6 +382,7 @@ export const {
   updateLatestBlockHashes,
   removePeer,
   setActivePeer,
+  connectWithPeer,
 } = blockChainSlice.actions;
 
 // Reducer

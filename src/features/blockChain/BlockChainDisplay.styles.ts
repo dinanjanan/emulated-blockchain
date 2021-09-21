@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 
-export const BlockChainContainer = styled.div`
+export const BlockChainDisplayContainer = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
