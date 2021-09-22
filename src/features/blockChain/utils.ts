@@ -1,5 +1,8 @@
 import crypto from 'crypto';
-import type { Block, UnhashedBlock } from './interfaces/BlockChain';
+import lodash from 'lodash';
+import { WritableDraft } from 'immer/dist/internal';
+
+import type { Block, BlockChain, UnhashedBlock } from './interfaces/BlockChain';
 
 /**
  * A valid hash is one that starts with 3 zeros
@@ -62,4 +65,66 @@ export const generateBlock = ({
   console.log('[INFO] Valid hash', hash, nonce);
 
   return { index, data, timeStamp, hash, previousHash, nonce };
+};
+
+export const updateChainOfPeerWithAnother = (
+  sourceChain: WritableDraft<BlockChain>,
+  chainToUpdate: WritableDraft<BlockChain>,
+): boolean | undefined => {
+  const peerLatestBlock = Object.values(sourceChain).at(-1);
+  const activePeerLatestBlock = Object.values(chainToUpdate).at(-1);
+
+  if (!peerLatestBlock || !activePeerLatestBlock) {
+    // Both blockchains are empty: which under normal execution should be impossible.
+    console.error(
+      '[ERROR] Either connected peer or active peer cannot retrieve latest block.',
+    );
+    return;
+  }
+
+  let shouldBroadcastLatestBlock = false;
+
+  // Check if the peer is one block ahead
+  if (peerLatestBlock.previousHash === activePeerLatestBlock.hash) {
+    if (isValidHash(peerLatestBlock.hash)) {
+      // Append block to the blockchain.
+      chainToUpdate[peerLatestBlock.index] = peerLatestBlock;
+
+      // Broadcast latest block to connected peers.
+      shouldBroadcastLatestBlock = true;
+    }
+  } else if (peerLatestBlock.index > activePeerLatestBlock.index) {
+    // Ask peer for entire blockchain
+    // sourceChain.blockChain
+
+    const isPeerBlockChainValid = Object.values(sourceChain).reduce(
+      (previousBlocksValid, block) => {
+        const { index, data, timeStamp, previousHash, nonce, hash } = block;
+        const reComputedHash = computeHash(
+          index,
+          data,
+          timeStamp,
+          previousHash,
+          nonce,
+        );
+
+        return previousBlocksValid && reComputedHash === hash;
+      },
+      true,
+    );
+
+    if (
+      isPeerBlockChainValid &&
+      Object.keys(sourceChain).length > Object.keys(chainToUpdate).length
+    ) {
+      // Replace active peer's chain with that of the connected peer.
+      // state.entities[state.activePeer]!.blockChain
+      chainToUpdate = lodash.cloneDeep(sourceChain);
+
+      // Broadcast latest block to connected peers.
+      shouldBroadcastLatestBlock = true;
+    }
+  }
+
+  return shouldBroadcastLatestBlock;
 };

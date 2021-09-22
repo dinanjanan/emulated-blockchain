@@ -14,7 +14,20 @@ export type BlockChain = {
 export interface Peer {
   id: string;
   name: string;
+  /**
+   * The copy of the blockchain held by the peer.
+   */
   blockChain: BlockChain;
+  /**
+   * Connected peers in chronological order of time of connection.
+   */
+  connectedPeers: Peer['id'][];
+  /**
+   * Peers that connected to this peer.
+   * Used to broadcast changes to all peers that have connected to this peer.
+   * Maintained in tandem with connectedPeers
+   */
+  peersThatConnected: Peer['id'][];
 }
 
 export type Peers = {
