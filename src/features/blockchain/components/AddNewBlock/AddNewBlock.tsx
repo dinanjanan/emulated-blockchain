@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 import { useAppDispatch } from '../../../../app/hooks';
-import { mineBlock } from '../../blockChain.slice';
+import { mineBlock } from '../../blockchain.slice';
 
 import Input from '../../../../components/Input/Input';
 import AddBlockButton from '../AddBlockButton/AddBlockButton';

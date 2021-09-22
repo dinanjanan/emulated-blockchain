@@ -1,8 +1,19 @@
 import crypto from 'crypto';
 import lodash from 'lodash';
 import { WritableDraft } from 'immer/dist/internal';
+import { nanoid } from '@reduxjs/toolkit';
 
-import type { Block, BlockChain, UnhashedBlock } from './interfaces/BlockChain';
+import type {
+  Block,
+  BlockChain,
+  Peer,
+  UnhashedBlock,
+} from './interfaces/blockchain.types';
+import {
+  BlockchainSliceState,
+  ExtendedBlockChainSliceState,
+} from './blockchain.slice';
+import { EntityState } from '@reduxjs/toolkit';
 
 /**
  * A valid hash is one that starts with 3 zeros
@@ -47,6 +58,7 @@ export const computeHash = (
  * @returns The block ready to be mined.
  */
 export const generateBlock = ({
+  id,
   index,
   data,
   previousHash,
@@ -64,7 +76,15 @@ export const generateBlock = ({
 
   console.log('[INFO] Valid hash', hash, nonce);
 
-  return { index, data, timeStamp, hash, previousHash, nonce };
+  return {
+    id: id ?? nanoid(),
+    index,
+    data,
+    timeStamp,
+    hash,
+    previousHash,
+    nonce,
+  };
 };
 
 export const updateChainOfPeerWithAnother = (
@@ -95,7 +115,7 @@ export const updateChainOfPeerWithAnother = (
     }
   } else if (peerLatestBlock.index > activePeerLatestBlock.index) {
     // Ask peer for entire blockchain
-    // sourceChain.blockChain
+    // sourceChain.blockchain
 
     const isPeerBlockChainValid = Object.values(sourceChain).reduce(
       (previousBlocksValid, block) => {
@@ -118,7 +138,7 @@ export const updateChainOfPeerWithAnother = (
       Object.keys(sourceChain).length > Object.keys(chainToUpdate).length
     ) {
       // Replace active peer's chain with that of the connected peer.
-      // state.entities[state.activePeer]!.blockChain
+      // state.entities[state.activePeer]!.blockchain
       chainToUpdate = lodash.cloneDeep(sourceChain);
 
       // Broadcast latest block to connected peers.
@@ -127,4 +147,46 @@ export const updateChainOfPeerWithAnother = (
   }
 
   return shouldBroadcastLatestBlock;
+};
+
+export const getBlockchainForPeer = (
+  state: WritableDraft<BlockchainSliceState>,
+  peerId: Peer['id'],
+) => {
+  const blockIds = state.peerBlockChainMap[peerId];
+
+  if (!blockIds) {
+    return null;
+  }
+
+  return blockIds.map(
+    blockId => state.blockchain.entities[blockId] as WritableDraft<Block>,
+  );
+};
+
+export const getPeerLatestBlock = (
+  state: WritableDraft<BlockchainSliceState>,
+  peerId: Peer['id'],
+): WritableDraft<Block> | null => {
+  const peerLatestBlockIdx = state.peerBlockChainMap[peerId].at(-1);
+  console.log(
+    'peerLatestBlockIndex:',
+    peerLatestBlockIdx,
+    peerId,
+    state.peerBlockChainMap[peerId],
+  );
+
+  if (!peerLatestBlockIdx) {
+    console.error(
+      `Peer #${peerId} doesn't have a corresponding blockchain mapping.`,
+    );
+    return null;
+  }
+  if (!state.blockchain.entities[peerLatestBlockIdx]) {
+    console.error(`Error retrieving latest block for peer #${peerId}`);
+    return null;
+  }
+
+  const peerLatestBlock = state.blockchain.entities[peerLatestBlockIdx]!;
+  return peerLatestBlock;
 };

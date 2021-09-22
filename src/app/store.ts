@@ -1,8 +1,8 @@
 import { configureStore, PreloadedState } from '@reduxjs/toolkit';
-import blockChainReducer from '../features/blockChain/blockChain.slice';
+import blockchainReducer from '../features/blockchain/blockchain.slice';
 
 const rootReducer = {
-  blockChain: blockChainReducer,
+  blockchain: blockchainReducer,
 };
 
 export const configureAppStore = <T>(preloadedState?: PreloadedState<T>) => {

@@ -9,7 +9,7 @@ import {
   fetchPeerData,
   selectAllPeers,
   setActivePeer,
-} from '../blockChain/blockChain.slice';
+} from '../blockchain/blockchain.slice';
 
 import {
   PeersDisplayContainer,

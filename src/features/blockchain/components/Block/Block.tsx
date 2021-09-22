@@ -8,13 +8,14 @@ import BlockNonce from '../BlockNonce/BlockNonce';
 import ReMineButton from '../ReMineButton/ReMineButton';
 
 import { useAppDispatch } from '../../../../app/hooks';
-import { updateLatestBlockHashes, reMineBlock } from '../../blockChain.slice';
+import { updateLatestBlockHashes, reMineBlock } from '../../blockchain.slice';
 import { isValidHash } from '../../utils';
 
 import { BlockContainer, BlockFooter } from './Block.styles';
-import { Block as BlockModel } from '../../interfaces/BlockChain';
+import { Block as BlockModel } from '../../interfaces/blockchain.types';
 
 const Block: React.FC<BlockModel> = ({
+  id: blockId,
   index,
   previousHash,
   hash,
@@ -36,7 +37,9 @@ const Block: React.FC<BlockModel> = ({
   };
 
   const onReMineClicked = () => {
-    dispatch(reMineBlock({ data: inputData, index, previousHash }));
+    dispatch(
+      reMineBlock({ id: blockId, data: inputData, index, previousHash }),
+    );
   };
 
   return (

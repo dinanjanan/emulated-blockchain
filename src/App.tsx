@@ -4,12 +4,12 @@ import {
   selectBlockChainSetUpState,
   fetchPeerData,
   mineBlock,
-} from './features/blockChain/blockChain.slice';
+} from './features/blockchain/blockchain.slice';
 import { useAppDispatch, useAppSelector } from './app/hooks';
 import { OperationStates } from './app/constants';
 
-import BlockChainDisplay from './features/blockChain/BlockChainDisplay';
-import AddNewBlock from './features/blockChain/components/AddNewBlock/AddNewBlock';
+import BlockChainDisplay from './features/blockchain/BlockChainDisplay';
+import AddNewBlock from './features/blockchain/components/AddNewBlock/AddNewBlock';
 import PeersDisplay from './features/peerNetwork/PeersDisplay';
 
 import Logo from './components/Logo/Logo';
@@ -20,7 +20,7 @@ import { AppContainer } from './styles/App.styles';
 import { GlobalStyles } from './styles/Global.styles';
 
 function App() {
-  const blockChainSetUpState = useAppSelector(selectBlockChainSetUpState);
+  const blockchainSetUpState = useAppSelector(selectBlockChainSetUpState);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -29,7 +29,7 @@ function App() {
       dispatch(mineBlock('Welcome to Blockchain Demo 2.0!'));
 
       // Trigger mining of the genesis block
-      // blockChainSlice.caseReducers.mineBlock(state, {
+      // blockchainSlice.caseReducers.mineBlock(state, {
       //   payload: 'Welcome to Blockchain Demo 2.0!',
       // });
     };
@@ -37,9 +37,9 @@ function App() {
     dispatchInOrder();
   }, [dispatch]);
 
-  if (blockChainSetUpState === OperationStates.pending) {
+  if (blockchainSetUpState === OperationStates.pending) {
     return <h2>Loading...</h2>;
-  } else if (blockChainSetUpState === OperationStates.failed) {
+  } else if (blockchainSetUpState === OperationStates.failed) {
     return <h2>An error occurred.</h2>;
   }
 

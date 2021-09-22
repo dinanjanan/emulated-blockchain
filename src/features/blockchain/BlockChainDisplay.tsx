@@ -4,7 +4,7 @@ import Block from './components/Block/Block';
 import DownChevron from './components/DownChevron/DownChevron';
 
 import { useAppSelector } from '../../app/hooks';
-import { selectAllBlocksForCurrentPeer } from './blockChain.slice';
+import { selectActivePeerBlockChain } from './blockchain.slice';
 
 import {
   BlockChainDisplayContainer,
@@ -12,7 +12,14 @@ import {
 } from './BlockChainDisplay.styles';
 
 const BlockChainDisplay: React.FC<{}> = () => {
-  const blocks = useAppSelector(selectAllBlocksForCurrentPeer);
+  const blocks = useAppSelector(selectActivePeerBlockChain);
+
+  if (!blocks) {
+    console.log('No blockchain');
+    return null;
+  }
+
+  console.log('blocks:', blocks);
 
   const renderedBlocks = blocks.map((block, i) => {
     return (

@@ -9,7 +9,7 @@ import {
   removePeer,
   selectPeerCount,
   connectWithPeer,
-} from '../../../blockChain/blockChain.slice';
+} from '../../../blockchain/blockchain.slice';
 
 import {
   PeerAvatarContainer,
