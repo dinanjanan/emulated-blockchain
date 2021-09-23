@@ -65,7 +65,7 @@ export const generateBlock = ({
   }
   nonce--; // As the nonce is incremented even after a valid hash is found.
 
-  console.log('[INFO] Valid hash', hash, nonce);
+  console.log('Valid hash', hash, nonce);
 
   return {
     id: id ?? nanoid(),
@@ -102,16 +102,44 @@ export const replaceBlockchain = function (
   // Take a copy of the source chain and add it all to the blocks collection. Reference the ids
   // of the copies here.
 
-  state.peerBlockChainMap[chainToUpdatePeerId] =
-    state.peerBlockChainMap[sourcePeerId];
-  const clonedBlockchain = state.peerBlockChainMap[sourcePeerId].map(
-    blockId => {
+  const chainToMerge = state.peerBlockChainMap[sourcePeerId]
+    .filter((_, i) => i >= state.peerBlockChainMap[chainToUpdatePeerId].length)
+    .map(blockId => {
       const clonedBlock = lodash.cloneDeep(state.blockchain.entities[blockId]!);
       clonedBlock.id = nanoid();
+
       return clonedBlock;
+    });
+
+  const chainToUpdate = state.peerBlockChainMap[chainToUpdatePeerId].map(
+    (blockId, i) => {
+      if (i === 0) return state.blockchain.entities[blockId]!;
+
+      const clonedBlock = lodash.cloneDeep(state.blockchain.entities[blockId]!);
+      clonedBlock.id = nanoid();
+
+      if (i === state.peerBlockChainMap[chainToUpdatePeerId].length - 1) {
+        // If this is the last block of the chain to be updated, its hash must be updated to the
+        // equivalent one from the source chain, even though this should technically invalidate
+        // the chain.
+        clonedBlock.hash =
+          state.blockchain.entities[
+            state.peerBlockChainMap[sourcePeerId][i]
+          ]!.hash;
+      }
+
+      return clonedBlock!;
     },
   );
 
+  const clonedBlockchain = chainToUpdate.concat(chainToMerge);
+
+  // Update the peer-to-blockchain map
+  state.peerBlockChainMap[chainToUpdatePeerId] = clonedBlockchain.map(
+    block => block.id,
+  );
+
+  // Store the new blockchain copy in the state, and return a reference to the blocks state slice.
   return blocksCollectionAdapter.addMany(state.blockchain, clonedBlockchain);
 };
 
@@ -135,7 +163,7 @@ export const isBlockchainValid = function (
   );
 };
 
-export const addBlockToPeersChains = function (
+export const updateBlockchainsOfAllConnectedPeers = function (
   state: WritableDraft<BlockchainSliceState>,
   blocksCollectionAdapter: EntityAdapter<Block>,
   sourcePeer: WritableDraft<Peer>,
@@ -177,7 +205,8 @@ export const addBlockToPeersChains = function (
       blocksCollectionAdapter,
     );
 
-    addBlockToPeersChains(
+    // Update all the connected peers recursively
+    updateBlockchainsOfAllConnectedPeers(
       state,
       blocksCollectionAdapter,
       state.peers.entities[peerId]!,

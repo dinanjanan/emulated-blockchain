@@ -6,12 +6,13 @@ import {
 } from '@reduxjs/toolkit';
 
 import {
-  addBlockToPeersChains,
+  updateBlockchainsOfAllConnectedPeers,
   computeHash,
   generateBlock,
   getBlockchainForPeer,
   getPeerLatestBlock,
   updateChainOfPeerWithAnother,
+  appendBlockToChain,
 } from './utils';
 import { OperationStates } from '../../app/constants';
 
@@ -110,7 +111,6 @@ const blockchainSlice = createSlice({
         });
       }
 
-      // activeBlockchain[block.index] = block;
       blocksCollectionAdapter.addOne(state.blockchain, block);
       state.peerBlockChainMap[state.peers.activePeer] = [
         ...state.peerBlockChainMap[state.peers.activePeer],
@@ -122,28 +122,11 @@ const blockchainSlice = createSlice({
       // Broadcast new block to all connected peers
       let sourcePeer = state.peers.entities[state.peers.activePeer]!;
 
-      addBlockToPeersChains(state, blocksCollectionAdapter, sourcePeer);
-
-      // sourcePeer.connectedPeers.forEach(peerId => {
-      //   // Mine the block in their copy of the blockchain as well.
-      //   if (!state.peers.entities[peerId]) {
-      //     console.error(`Peer #${peerId} doesn't exist.`);
-      //     return;
-      //   }
-
-      //   const peerLatestBlock = getPeerLatestBlock(state, peerId);
-
-      //   if (!peerLatestBlock) return;
-
-      //   updateChainOfPeerWithAnother(
-      //     getBlockchainForPeer(state, sourcePeer.id)!,
-      //     getBlockchainForPeer(state, peerId)!,
-      //     state,
-      //     sourcePeer.id,
-      //     peerId,
-      //     blocksCollectionAdapter,
-      //   );
-      // });
+      updateBlockchainsOfAllConnectedPeers(
+        state,
+        blocksCollectionAdapter,
+        sourcePeer,
+      );
     },
     reMineBlock(
       state,
@@ -225,10 +208,10 @@ const blockchainSlice = createSlice({
       peersAdapter.removeOne(state.peers, payload.peerId);
 
       // Delete all associated blocks
-      // blocksCollectionAdapter.removeMany(
-      //   state.blockchain,
-      //   state.peerBlockChainMap[payload.peerId],
-      // );
+      blocksCollectionAdapter.removeMany(
+        state.blockchain,
+        state.peerBlockChainMap[payload.peerId],
+      );
 
       // Delete peer-to-blockchain mapping
       delete state.peerBlockChainMap[payload.peerId];
@@ -258,8 +241,6 @@ const blockchainSlice = createSlice({
         return;
       }
 
-      // let peerId = state.peers.entities[state.peers.activePeer]?.connectedPeers.at(0);
-
       // Connect with the peer
       const connectedPeer = state.peers.entities[peerId];
 
@@ -270,9 +251,9 @@ const blockchainSlice = createSlice({
         return;
       }
 
-      // The longest blockchain is considered the most up-to-date.
+      /* The longest blockchain is considered to be the most up-to-date. */
 
-      const shouldBroadcastLatestBlock = updateChainOfPeerWithAnother(
+      updateChainOfPeerWithAnother(
         getBlockchainForPeer(state, connectedPeer.id)!,
         activeBlockchain,
         state,
@@ -281,11 +262,16 @@ const blockchainSlice = createSlice({
         blocksCollectionAdapter,
       );
 
-      if (shouldBroadcastLatestBlock) {
-        // Perform the same for all connected peers. This time, the currently active peer will be the peer to connect with, and the connected peer will be assumed to be the
-        // active peer, as they have the outdated blockchain.
-        console.log(`Broadcast should be performed.`);
-      }
+      // Call again, this time reversing the source and peer to update so that it will update the shorter
+      // chain regardless of which of the two peers initiated the connection.
+      updateChainOfPeerWithAnother(
+        activeBlockchain,
+        getBlockchainForPeer(state, connectedPeer.id)!,
+        state,
+        state.peers.activePeer,
+        connectedPeer.id,
+        blocksCollectionAdapter,
+      );
     },
     connectWithPeer(state, { payload: peerId }: { payload: string }) {
       if (!state.peers.activePeer || !state.peers.entities[peerId]) {
@@ -349,8 +335,17 @@ const blockchainSlice = createSlice({
         if (!settingUpFirstPeer) {
           // Mining of the genesis block is done right after the the first peer is created.
           // The already mined genesis block must be copied to this peer's blockchain.
-          state.peerBlockChainMap[payload.id][0] =
-            state.peerBlockChainMap[state.peers.activePeer][0];
+          // state.peerBlockChainMap[payload.id][0] =
+          //   state.peerBlockChainMap[state.peers.activePeer][0];
+
+          appendBlockToChain(
+            state,
+            blocksCollectionAdapter,
+            state.blockchain.entities[
+              state.peerBlockChainMap[state.peers.activePeer][0]
+            ]!,
+            payload.id,
+          );
         }
 
         if (settingUpFirstPeer) {
