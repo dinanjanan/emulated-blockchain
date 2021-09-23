@@ -47,7 +47,11 @@ const PeerAvatar: React.FC<PeerAvatarProps> = ({
   }
 
   const numPeers = useAppSelector(selectPeerCount);
-  const onRemovePeerClicked = () => {
+  const onRemovePeerClicked: React.MouseEventHandler = e => {
+    // Prevent event from propagating back up so that nothing happens if any parent elements
+    // need to do something which requires this component to be rendered.
+    e.stopPropagation();
+
     console.log('numPeers:', numPeers);
     if (numPeers > 1) dispatch(removePeer({ peerId }));
     else

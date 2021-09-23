@@ -1,19 +1,10 @@
 import crypto from 'crypto';
 import lodash from 'lodash';
 import { WritableDraft } from 'immer/dist/internal';
-import { nanoid } from '@reduxjs/toolkit';
+import { EntityAdapter, nanoid } from '@reduxjs/toolkit';
 
-import type {
-  Block,
-  BlockChain,
-  Peer,
-  UnhashedBlock,
-} from './interfaces/blockchain.types';
-import {
-  BlockchainSliceState,
-  ExtendedBlockChainSliceState,
-} from './blockchain.slice';
-import { EntityState } from '@reduxjs/toolkit';
+import type { Block, Peer, UnhashedBlock } from './interfaces/blockchain.types';
+import { BlockchainSliceState } from './blockchain.slice';
 
 /**
  * A valid hash is one that starts with 3 zeros
@@ -88,11 +79,15 @@ export const generateBlock = ({
 };
 
 export const updateChainOfPeerWithAnother = (
-  sourceChain: WritableDraft<BlockChain>,
-  chainToUpdate: WritableDraft<BlockChain>,
+  sourceChain: WritableDraft<Block[]>,
+  chainToUpdate: WritableDraft<Block[]>,
+  state: WritableDraft<BlockchainSliceState>,
+  sourcePeerId: string,
+  chainToUpdatePeerId: string,
+  blocksCollectionAdapter: EntityAdapter<Block>,
 ): boolean | undefined => {
-  const peerLatestBlock = Object.values(sourceChain).at(-1);
-  const activePeerLatestBlock = Object.values(chainToUpdate).at(-1);
+  const peerLatestBlock = sourceChain.at(-1);
+  const activePeerLatestBlock = chainToUpdate.at(-1);
 
   if (!peerLatestBlock || !activePeerLatestBlock) {
     // Both blockchains are empty: which under normal execution should be impossible.
@@ -108,7 +103,14 @@ export const updateChainOfPeerWithAnother = (
   if (peerLatestBlock.previousHash === activePeerLatestBlock.hash) {
     if (isValidHash(peerLatestBlock.hash)) {
       // Append block to the blockchain.
-      chainToUpdate[peerLatestBlock.index] = peerLatestBlock;
+      // chainToUpdate[peerLatestBlock.index] = peerLatestBlock;
+
+      // TODO - Add a copy of peerLatestBlock to the blocksCollection and use the copy's id here.
+      // state.peerBlockChainMap[chainToUpdatePeerId].push(peerLatestBlock.id);
+      const clonedBlock = lodash.cloneDeep(peerLatestBlock);
+      clonedBlock.id = nanoid();
+      state.peerBlockChainMap[chainToUpdatePeerId].push(clonedBlock.id);
+      blocksCollectionAdapter.addOne(state.blockchain, clonedBlock);
 
       // Broadcast latest block to connected peers.
       shouldBroadcastLatestBlock = true;
@@ -117,7 +119,7 @@ export const updateChainOfPeerWithAnother = (
     // Ask peer for entire blockchain
     // sourceChain.blockchain
 
-    const isPeerBlockChainValid = Object.values(sourceChain).reduce(
+    const isPeerBlockChainValid = sourceChain.reduce(
       (previousBlocksValid, block) => {
         const { index, data, timeStamp, previousHash, nonce, hash } = block;
         const reComputedHash = computeHash(
@@ -133,13 +135,28 @@ export const updateChainOfPeerWithAnother = (
       true,
     );
 
-    if (
-      isPeerBlockChainValid &&
-      Object.keys(sourceChain).length > Object.keys(chainToUpdate).length
-    ) {
+    if (isPeerBlockChainValid && sourceChain.length > chainToUpdate.length) {
       // Replace active peer's chain with that of the connected peer.
       // state.entities[state.activePeer]!.blockchain
-      chainToUpdate = lodash.cloneDeep(sourceChain);
+      // chainToUpdate = lodash.cloneDeep(sourceChain);
+      console.log(
+        `Replacing blockchain of ${chainToUpdatePeerId} with ${sourcePeerId}`,
+      );
+
+      // TODO - Take a copy of the source chain and add it all to the blocks collection. Referecne the ids
+      // of the copies here.
+      state.peerBlockChainMap[chainToUpdatePeerId] =
+        state.peerBlockChainMap[sourcePeerId];
+      const clonedBlockchain = state.peerBlockChainMap[sourcePeerId].map(
+        blockId => {
+          const clonedBlock = lodash.cloneDeep(
+            state.blockchain.entities[blockId]!,
+          );
+          clonedBlock.id = nanoid();
+          return clonedBlock;
+        },
+      );
+      blocksCollectionAdapter.addMany(state.blockchain, clonedBlockchain);
 
       // Broadcast latest block to connected peers.
       shouldBroadcastLatestBlock = true;
@@ -169,12 +186,6 @@ export const getPeerLatestBlock = (
   peerId: Peer['id'],
 ): WritableDraft<Block> | null => {
   const peerLatestBlockIdx = state.peerBlockChainMap[peerId].at(-1);
-  console.log(
-    'peerLatestBlockIndex:',
-    peerLatestBlockIdx,
-    peerId,
-    state.peerBlockChainMap[peerId],
-  );
 
   if (!peerLatestBlockIdx) {
     console.error(

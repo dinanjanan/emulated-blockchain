@@ -144,6 +144,10 @@ const blockchainSlice = createSlice({
         updateChainOfPeerWithAnother(
           getBlockchainForPeer(state, sourcePeer.id)!,
           getBlockchainForPeer(state, peerId)!,
+          state,
+          sourcePeer.id,
+          peerId,
+          blocksCollectionAdapter,
         );
       });
       // }
@@ -228,16 +232,16 @@ const blockchainSlice = createSlice({
       peersAdapter.removeOne(state.peers, payload.peerId);
 
       // Delete all associated blocks
-      blocksCollectionAdapter.removeMany(
-        state.blockchain,
-        state.peerBlockChainMap[payload.peerId],
-      );
+      // blocksCollectionAdapter.removeMany(
+      //   state.blockchain,
+      //   state.peerBlockChainMap[payload.peerId],
+      // );
 
       // Delete peer-to-blockchain mapping
       delete state.peerBlockChainMap[payload.peerId];
 
       // Set the active peer
-      state.peers.activePeer = state.peers.ids[idIdx - 1] as string;
+      state.peers.activePeer = state.peers.ids.at(idIdx - 1) as string;
     },
     setActivePeer(state, { payload: peerId }: { payload: string }) {
       console.log('active peer to set:', peerId);
@@ -278,6 +282,10 @@ const blockchainSlice = createSlice({
       const shouldBroadcastLatestBlock = updateChainOfPeerWithAnother(
         getBlockchainForPeer(state, connectedPeer.id)!,
         activeBlockchain,
+        state,
+        connectedPeer.id,
+        state.peers.activePeer,
+        blocksCollectionAdapter,
       );
 
       if (shouldBroadcastLatestBlock) {
@@ -343,17 +351,9 @@ const blockchainSlice = createSlice({
         if (!settingUpFirstPeer) {
           // Mining of the genesis block is done right after the the first peer is created.
           // The already mined genesis block must be copied to this peer's blockchain.
-          // state.peers.entities[payload.id]!.blockchain[0] =
-          //   activeBlockchain![0];
-
           state.peerBlockChainMap[payload.id][0] =
             state.peerBlockChainMap[state.peers.activePeer][0];
         }
-
-        // Set the active peer.
-        // blockchainSlice.caseReducers.setActivePeer(state, {
-        //   payload: payload.id,
-        // });
 
         if (settingUpFirstPeer) {
           // Acknowledge the app that the blockchain has been setup.
