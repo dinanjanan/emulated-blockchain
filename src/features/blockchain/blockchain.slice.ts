@@ -6,6 +6,7 @@ import {
 } from '@reduxjs/toolkit';
 
 import {
+  addBlockToPeersChains,
   computeHash,
   generateBlock,
   getBlockchainForPeer,
@@ -70,10 +71,6 @@ export const fetchPeerData = createAsyncThunk<PeerFromAPI>(
   },
 );
 
-export const addBlockToPeerChain = (state: BlockchainSliceState) => {
-  // const activeBlockchain = blockchain.entities[peer.blockchainId];
-};
-
 const blockchainSlice = createSlice({
   name: 'blockchain',
   initialState,
@@ -125,26 +122,28 @@ const blockchainSlice = createSlice({
       // Broadcast new block to all connected peers
       let sourcePeer = state.peers.entities[state.peers.activePeer]!;
 
-      sourcePeer.connectedPeers.forEach(peerId => {
-        // Mine the block in their copy of the blockchain as well.
-        if (!state.peers.entities[peerId]) {
-          console.error(`Peer #${peerId} doesn't exist.`);
-          return;
-        }
+      addBlockToPeersChains(state, blocksCollectionAdapter, sourcePeer);
 
-        const peerLatestBlock = getPeerLatestBlock(state, peerId);
+      // sourcePeer.connectedPeers.forEach(peerId => {
+      //   // Mine the block in their copy of the blockchain as well.
+      //   if (!state.peers.entities[peerId]) {
+      //     console.error(`Peer #${peerId} doesn't exist.`);
+      //     return;
+      //   }
 
-        if (!peerLatestBlock) return;
+      //   const peerLatestBlock = getPeerLatestBlock(state, peerId);
 
-        updateChainOfPeerWithAnother(
-          getBlockchainForPeer(state, sourcePeer.id)!,
-          getBlockchainForPeer(state, peerId)!,
-          state,
-          sourcePeer.id,
-          peerId,
-          blocksCollectionAdapter,
-        );
-      });
+      //   if (!peerLatestBlock) return;
+
+      //   updateChainOfPeerWithAnother(
+      //     getBlockchainForPeer(state, sourcePeer.id)!,
+      //     getBlockchainForPeer(state, peerId)!,
+      //     state,
+      //     sourcePeer.id,
+      //     peerId,
+      //     blocksCollectionAdapter,
+      //   );
+      // });
     },
     reMineBlock(
       state,

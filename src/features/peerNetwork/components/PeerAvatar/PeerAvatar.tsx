@@ -63,7 +63,8 @@ const PeerAvatar: React.FC<PeerAvatarProps> = ({
       );
   };
 
-  const onConnectWithPeerClicked = () => {
+  const onConnectWithPeerClicked: React.MouseEventHandler = e => {
+    e.stopPropagation();
     dispatch(connectWithPeer(peerId));
   };
 
