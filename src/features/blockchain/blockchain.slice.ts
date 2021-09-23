@@ -123,10 +123,8 @@ const blockchainSlice = createSlice({
       console.log(`Added block #${block.index}`);
 
       // Broadcast new block to all connected peers
-      // let updatedAllReqPeers = false;
       let sourcePeer = state.peers.entities[state.peers.activePeer]!;
 
-      // while (!updatedAllReqPeers) {
       sourcePeer.connectedPeers.forEach(peerId => {
         // Mine the block in their copy of the blockchain as well.
         if (!state.peers.entities[peerId]) {
@@ -138,9 +136,6 @@ const blockchainSlice = createSlice({
 
         if (!peerLatestBlock) return;
 
-        // if (peerLatestBlock.hash === block.previousHash) {
-        //   console.log(`Appending block to peer #${peerId}'s chain.'`);
-        // }
         updateChainOfPeerWithAnother(
           getBlockchainForPeer(state, sourcePeer.id)!,
           getBlockchainForPeer(state, peerId)!,
@@ -150,7 +145,6 @@ const blockchainSlice = createSlice({
           blocksCollectionAdapter,
         );
       });
-      // }
     },
     reMineBlock(
       state,
@@ -300,9 +294,14 @@ const blockchainSlice = createSlice({
           'Invalid information passed to connectWithPeer. Peer with provided id does not exist, or the application is in an unreliable state as the activePeer does not exist.',
         );
       }
+      if (peerId === state.peers.activePeer) {
+        console.warn(`The peer to connect with cannot be the active peer.`);
+        return;
+      }
+
+      // Update the connectedPeers array of both peers
       state.peers.entities[state.peers.activePeer]?.connectedPeers.push(peerId);
       state.peers.entities[peerId]?.connectedPeers.push(state.peers.activePeer);
-      // state.peers.entities[peerId]?.peersThatConnected.push(state.peers.activePeer);
 
       blockchainSlice.caseReducers.updateBlockChainWithConnectedPeer(state, {
         payload: peerId,
