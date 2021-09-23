@@ -9,17 +9,14 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.6.1",
+    "@testing-library/dom": "7.21.4",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
     "@testing-library/user-event": "^12.1.10",
-    "@types/jest": "^27.0.1",
-    "@types/node": "^16.9.1",
-    "@types/react": "^17.0.20",
-    "@types/react-dom": "^17.0.9",
-    "@types/webpack": "^5.28.0",
     "lodash": "^4.17.21",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-is": "16.8.0",
     "react-redux": "^7.2.5",
     "react-scripts": "4.0.3",
     "styled-components": "^5.3.1",
@@ -63,8 +60,13 @@
     ]
   },
   "devDependencies": {
+    "@types/jest": "^27.0.2",
     "@types/lodash": "^4.14.173",
+    "@types/node": "^16.9.6",
+    "@types/react": "^17.0.24",
+    "@types/react-dom": "^17.0.9",
     "@types/styled-components": "^5.1.14",
+    "@types/webpack": "^5.28.0",
     "@types/webpack-env": "^1.16.2"
   }
 }
