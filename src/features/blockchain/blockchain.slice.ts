@@ -12,7 +12,7 @@ import {
   getBlockchainForPeer,
   getPeerLatestBlock,
   updateChainOfPeerWithAnother,
-  appendBlockToChain,
+  appendBlockCloneToChain,
 } from './utils';
 import { OperationStates } from '../../app/constants';
 
@@ -338,7 +338,7 @@ const blockchainSlice = createSlice({
           // state.peerBlockChainMap[payload.id][0] =
           //   state.peerBlockChainMap[state.peers.activePeer][0];
 
-          appendBlockToChain(
+          appendBlockCloneToChain(
             state,
             blocksCollectionAdapter,
             state.blockchain.entities[

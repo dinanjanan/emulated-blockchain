@@ -78,7 +78,7 @@ export const generateBlock = ({
   };
 };
 
-export const appendBlockToChain = function (
+export const appendBlockCloneToChain = function (
   state: WritableDraft<BlockchainSliceState>,
   blocksCollectionAdapter: EntityAdapter<Block>,
   block: WritableDraft<Block>,
@@ -126,6 +126,10 @@ export const replaceBlockchain = function (
           state.blockchain.entities[
             state.peerBlockChainMap[sourcePeerId][i]
           ]!.hash;
+
+        // Remove the block with the invalid hash as a new one has been created, and this block would
+        // otherwise be orphaned.
+        blocksCollectionAdapter.removeOne(state.blockchain, blockId);
       }
 
       return clonedBlock!;
@@ -237,16 +241,12 @@ export const updateChainOfPeerWithAnother = function (
   // Check if the peer is one block ahead
   if (peerLatestBlock.previousHash === activePeerLatestBlock.hash) {
     if (isValidHash(peerLatestBlock.hash)) {
-      // Append block to the blockchain.
-
-      appendBlockToChain(
+      appendBlockCloneToChain(
         state,
         blocksCollectionAdapter,
         peerLatestBlock,
         chainToUpdatePeerId,
       );
-
-      // Broadcast latest block to connected peers.
     }
   } else if (peerLatestBlock.index > activePeerLatestBlock.index) {
     const isPeerBlockChainValid = isBlockchainValid(sourceChain);
@@ -263,8 +263,6 @@ export const updateChainOfPeerWithAnother = function (
         chainToUpdatePeerId,
         sourcePeerId,
       );
-
-      // Broadcast latest block to connected peers.
     }
   }
 };
