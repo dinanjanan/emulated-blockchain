@@ -23,6 +23,7 @@ type PeerAvatarProps = {
   name: string;
   peerId: string;
   onClick: React.MouseEventHandler<HTMLDivElement>;
+  forwardedRef?: React.ForwardedRef<HTMLDivElement>;
 };
 
 const PeerAvatar: React.FC<PeerAvatarProps> = ({
@@ -30,6 +31,7 @@ const PeerAvatar: React.FC<PeerAvatarProps> = ({
   name,
   peerId,
   onClick,
+  forwardedRef,
 }) => {
   const dispatch = useAppDispatch();
 
@@ -70,6 +72,7 @@ const PeerAvatar: React.FC<PeerAvatarProps> = ({
 
   return (
     <PeerAvatarContainer
+      ref={forwardedRef}
       color={connectionState.color}
       isSelected
       onClick={onClick}
