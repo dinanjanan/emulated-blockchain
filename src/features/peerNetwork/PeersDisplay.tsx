@@ -1,4 +1,4 @@
-import React, { useRef, useState, useLayoutEffect, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 
 import Title from '../../components/Title/Title';
@@ -23,165 +23,112 @@ const PeersDisplay: React.FC = () => {
   const dispatch = useAppDispatch();
 
   const peers = useAppSelector(selectAllPeers);
-  console.log('peers:', peers);
+  // console.log('peers:', peers);
 
-  const [peersListWidth, setPeersListWidth] = useState(0);
-  const [currentSlide, setCurrentSlide] = useState<number>(0);
-  const [leftArrowVisible, setLeftArrowVisible] = useState(false);
-  const [rightArrowVisible, setRightArrowVisible] = useState(false);
+  const [prevPeersLength, setPrevPeersLength] = useState(peers.length);
+  const [, setPeersListWidth] = useState(0);
+  const [, setCurrElIdx] = useState(0);
+  const [peerAvatarWidth, setPeerAvatarWidth] = useState(0);
 
   const peersListRef = useRef<HTMLDivElement>(null);
   const firstPeerRef = useRef<HTMLDivElement>(null);
   const leftArrowRef = useRef<HTMLDivElement>(null);
   const rightArrowRef = useRef<HTMLDivElement>(null);
-  const endPaddingRef = useRef<HTMLDivElement>(null);
 
-  const peerAvatarWidth: number =
-    (firstPeerRef.current?.getBoundingClientRect().width ?? 71) + 52;
+  const calculateElementsPerSlide = useCallback(() => {
+    return Math.floor(
+      peersListRef.current!.getBoundingClientRect().width / peerAvatarWidth,
+    );
+  }, [peerAvatarWidth]);
 
-  const closestCeilMultiple = (x: number, divisor: number): number => {
-    let num = Math.ceil(x);
-
-    while (num % divisor) {
-      num++;
-    }
-
-    return num;
-  };
+  const scrollToPeerAvatar = useCallback(
+    (idx: number) => {
+      peersListRef.current?.scrollTo({
+        left: idx * peerAvatarWidth,
+        top: 0,
+        behavior: 'smooth',
+      });
+    },
+    [peerAvatarWidth],
+  );
 
   useEffect(() => {
     const resizeObserver = new ResizeObserver(entries => {
       for (let entry of entries) {
         if (entry.contentBoxSize) {
+          // Firefox uses an array
           const contentBoxSize: ResizeObserverSize = Array.isArray(
             entry.contentBoxSize,
           )
             ? entry.contentBoxSize[0]
             : entry.contentBoxSize;
 
-          console.log('RESIZE OBSERVER');
+          // Force a re-render
           setPeersListWidth(contentBoxSize.inlineSize);
         }
       }
     });
 
+    // Calculate the peer avatar width after mounting
+    setPeerAvatarWidth(
+      (firstPeerRef.current?.getBoundingClientRect().width ?? 70) + 52,
+    );
+
     resizeObserver.observe(peersListRef.current!);
   }, []);
 
-  useLayoutEffect(() => {
-    if (peersListRef.current && endPaddingRef.current) {
-      // const elementsPerSlide = Math.floor(
-      //   peersListRef.current.getBoundingClientRect().width / peerAvatarWidth,
-      // );
-      const elementsPerSlide =
-        peersListRef.current.getBoundingClientRect().width / peerAvatarWidth;
-      const numSlides = Math.ceil(peers.length / elementsPerSlide);
-      // const padding = (peers.length % elementsPerSlide) * peerAvatarWidth;
-      const padding =
-        (closestCeilMultiple(peers.length, Math.ceil(elementsPerSlide)) -
-          peers.length) *
-        peerAvatarWidth;
+  useEffect(() => {
+    // If the peers list has changed (i.e., if a peer was added or removed)
+    if (peers.length !== prevPeersLength) {
+      setPrevPeersLength(peers.length);
+    }
+    if (peers.length > prevPeersLength && peersListRef.current) {
+      scrollToPeerAvatar(peers.length - 1);
+    }
+  }, [
+    scrollToPeerAvatar,
+    setPrevPeersLength,
+    peersListRef,
+    peers,
+    prevPeersLength,
+  ]);
 
-      console.log(
-        'padding',
-        padding,
-        peersListRef.current.getBoundingClientRect().width,
-        currentSlide,
-      );
-      // endPaddingRef.current.style.paddingRight = `${padding}px`;
-      console.log('numSlides', numSlides);
+  const calculateNextIdx = useCallback(
+    (prevIdx: number, direction: 'right' | 'left'): number => {
+      let idx = 0;
+      if (peersListRef.current) {
+        const elementsPerSlide = calculateElementsPerSlide();
 
-      if (
-        peersListRef.current &&
-        leftArrowRef.current &&
-        rightArrowRef.current
-      ) {
-        if (peers.length <= Math.floor(elementsPerSlide)) {
-          leftArrowRef.current.style.visibility = 'hidden';
-          rightArrowRef.current.style.visibility = 'hidden';
-        } else if (currentSlide === 0) {
-          leftArrowRef.current.style.visibility = 'hidden';
-          rightArrowRef.current.style.visibility = 'visible';
-        } else if (currentSlide === numSlides - 1) {
-          leftArrowRef.current.style.visibility = 'visible';
-          rightArrowRef.current.style.visibility = 'hidden';
+        let temp;
+        if (direction === 'right') {
+          temp = prevIdx + elementsPerSlide;
         } else {
-          leftArrowRef.current.style.visibility = 'visible';
-          rightArrowRef.current.style.visibility = 'visible';
+          temp = prevIdx - elementsPerSlide;
+        }
+
+        if (temp > peers.length) {
+          idx = peers.length - 1;
+        } else {
+          idx = temp > 0 ? temp : 0;
         }
       }
-    }
-  });
 
-  const scrollToSlide = (slide: number) => {
-    if (peersListRef.current && endPaddingRef.current) {
-      const elementsPerSlide =
-        peersListRef.current.getBoundingClientRect().width / peerAvatarWidth;
+      return idx;
+    },
+    [peers, calculateElementsPerSlide],
+  );
 
-      const numSlides = Math.ceil(peers.length / elementsPerSlide);
-      console.log('peerAvatarWidth', peerAvatarWidth);
-      console.log('elements', elementsPerSlide);
-      console.log('numSlides', numSlides);
-      console.log(
-        'peersListWidth',
-        peersListRef.current.getBoundingClientRect().width,
-      );
+  const onArrowClicked = useCallback(
+    (direction: 'left' | 'right') => {
+      setCurrElIdx(prevIdx => {
+        const idx = calculateNextIdx(prevIdx, direction);
+        scrollToPeerAvatar(idx);
 
-      console.log('scrollTo', slide);
-
-      if (slide === 0) setLeftArrowVisible(false);
-      if (slide === numSlides - 1) setRightArrowVisible(false);
-
-      peersListRef.current?.scrollTo({
-        left: slide * peersListRef.current.getBoundingClientRect().width,
-        top: 0,
-        behavior: 'smooth',
+        return idx;
       });
-    }
-  };
-
-  const onLeftArrowClicked = () => {
-    setCurrentSlide(prevSlide => {
-      let nextSlide: number = prevSlide - 1;
-
-      if (peersListRef.current && endPaddingRef.current) {
-        const elementsPerSlide =
-          peersListRef.current.getBoundingClientRect().width / peerAvatarWidth;
-
-        const numSlides = Math.ceil(peers.length / elementsPerSlide);
-
-        if (prevSlide === 0) {
-          nextSlide = numSlides - 1;
-        }
-      }
-      console.log('ns', nextSlide);
-
-      scrollToSlide(nextSlide);
-
-      return nextSlide;
-    });
-  };
-
-  const onRightArrowClicked = () => {
-    setCurrentSlide(prevSlide => {
-      let nextSlide: number = prevSlide + 1;
-
-      if (peersListRef.current && endPaddingRef.current) {
-        const elementsPerSlide =
-          peersListRef.current.getBoundingClientRect().width / peerAvatarWidth;
-
-        const numSlides = Math.ceil(peers.length / elementsPerSlide);
-        console.log(numSlides, prevSlide);
-        if (prevSlide > numSlides || prevSlide === numSlides - 1) {
-          nextSlide = 0;
-        }
-      }
-
-      scrollToSlide(nextSlide);
-
-      return nextSlide;
-    });
-  };
+    },
+    [setCurrElIdx, scrollToPeerAvatar, calculateNextIdx],
+  );
 
   const onAddPeerClicked = () => {
     dispatch(fetchPeerData());
@@ -198,8 +145,7 @@ const PeersDisplay: React.FC = () => {
         <PeersListContainer>
           <SideChevronContainer
             ref={leftArrowRef}
-            onClick={onLeftArrowClicked}
-            style={{ visibility: leftArrowVisible ? 'visible' : 'hidden' }}
+            onClick={() => onArrowClicked('left')}
           >
             <i className="fas fa-chevron-left" />
           </SideChevronContainer>
@@ -216,12 +162,10 @@ const PeersDisplay: React.FC = () => {
                 />
               );
             })}
-            <div ref={endPaddingRef} style={{ backgroundColor: 'red' }} />
           </PeersList>
           <SideChevronContainer
             ref={rightArrowRef}
-            onClick={onRightArrowClicked}
-            style={{ visibility: rightArrowVisible ? 'visible' : 'hidden' }}
+            onClick={() => onArrowClicked('right')}
           >
             <i className="fas fa-chevron-right" />
           </SideChevronContainer>

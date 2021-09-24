@@ -9,6 +9,7 @@ export const configureAppStore = <T>(preloadedState?: PreloadedState<T>) => {
   const store = configureStore({
     reducer: rootReducer,
     preloadedState,
+    devTools: process.env.NODE_ENV !== 'production',
   });
 
   return store;

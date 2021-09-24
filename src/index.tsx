@@ -7,6 +7,10 @@ import reportWebVitals from './reportWebVitals';
 import { Provider } from 'react-redux';
 import { configureAppStore } from './app/store';
 
+if (process.env.NODE_ENV === 'production') {
+  console.log = function () {};
+}
+
 const store = configureAppStore();
 
 ReactDOM.render(

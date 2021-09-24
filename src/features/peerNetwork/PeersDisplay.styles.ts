@@ -17,7 +17,9 @@ export const PeersList = styled.div`
   align-items: center;
   margin-left: 20px;
   width: calc(100vw - 320px);
-  overflow: hidden;
+  overflow-y: hidden;
+  overflow-x: scroll;
+  transition: all 500ms ease;
 `;
 
 export const AddPeerButton = styled.div`
