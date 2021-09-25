@@ -112,6 +112,3 @@ const PeerAvatar: React.FC<PeerAvatarProps> = ({
 };
 
 export default PeerAvatar;
-
-// TODO - Implement the 'connect' and 'view history' buttons under each peer, each with
-// the correct visibility (i.e., 'view history' must only be available when the peer is connected)
