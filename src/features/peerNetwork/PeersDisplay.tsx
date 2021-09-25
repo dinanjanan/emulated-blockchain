@@ -8,6 +8,7 @@ import { ConnectionStates } from '../../app/constants';
 import {
   fetchPeerData,
   selectAllPeers,
+  selectActivePeer,
   setActivePeer,
 } from '../blockchain/blockchain.slice';
 
@@ -23,6 +24,7 @@ const PeersDisplay: React.FC = () => {
   const dispatch = useAppDispatch();
 
   const peers = useAppSelector(selectAllPeers);
+  const activePeer = useAppSelector(selectActivePeer)!;
   // console.log('peers:', peers);
 
   const [prevPeersLength, setPrevPeersLength] = useState(peers.length);
@@ -155,7 +157,13 @@ const PeersDisplay: React.FC = () => {
                 <PeerAvatar
                   key={peer.id}
                   forwardedRef={i === 0 ? firstPeerRef : null}
-                  connectionState={ConnectionStates.currentlyActive}
+                  connectionState={
+                    activePeer.id === peer.id
+                      ? ConnectionStates.currentlyActive
+                      : activePeer.connectedPeers.includes(peer.id)
+                      ? ConnectionStates.connected
+                      : ConnectionStates.disconnected
+                  }
                   name={peer.name}
                   peerId={peer.id}
                   onClick={() => onPeerAvatarClicked(peer.id)}
