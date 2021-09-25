@@ -38,17 +38,16 @@ const peersAdapter = createEntityAdapter<Peer>();
  */
 const blocksCollectionAdapter = createEntityAdapter<Block>();
 
-/**
- * Maps peer ids to an array of their blocks (i.e., their copy of the blockchain)
- */
-const _peerBlockChainMap: PeerToBlockchainMap = {};
-
 const initialState = {
   peers: peersAdapter.getInitialState({
     activePeer: '' as string,
   } as ExtendedBlockChainSliceState),
   blockchain: blocksCollectionAdapter.getInitialState(),
-  peerBlockChainMap: _peerBlockChainMap,
+
+  /**
+   * Maps peer ids to an array of their blocks (i.e., their copy of the blockchain)
+   */
+  peerBlockChainMap: {} as PeerToBlockchainMap,
   setUpState: OperationStates.pending as keyof typeof OperationStates,
 };
 

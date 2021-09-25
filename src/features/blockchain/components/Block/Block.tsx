@@ -12,7 +12,7 @@ import { updateLatestBlockHashes, reMineBlock } from '../../blockchain.slice';
 import { isValidHash } from '../../utils';
 
 import { BlockContainer, BlockFooter } from './Block.styles';
-import { Block as BlockModel } from '../../blockchain.types';
+import { Block as BlockModel } from '../../interfaces/blockchain.types';
 
 const Block: React.FC<BlockModel> = ({
   id: blockId,
