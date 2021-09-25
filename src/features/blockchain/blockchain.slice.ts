@@ -22,7 +22,7 @@ import {
   Peer,
   PeerToBlockchainMap,
   UnhashedBlock,
-} from './interfaces/blockchain.types';
+} from './blockchain.types';
 
 type PeerFromAPI = Omit<Peer, 'blockchain'>;
 
