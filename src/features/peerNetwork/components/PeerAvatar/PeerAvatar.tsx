@@ -9,7 +9,8 @@ import {
   removePeer,
   selectPeerCount,
   connectWithPeer,
-  selectActivePeerId,
+  disconnectPeer,
+  selectActivePeer,
 } from '../../../blockchain/blockchain.slice';
 
 import {
@@ -50,7 +51,7 @@ const PeerAvatar: React.FC<PeerAvatarProps> = ({
   }
 
   const numPeers = useAppSelector(selectPeerCount);
-  const activePeerId = useAppSelector(selectActivePeerId);
+  const activePeer = useAppSelector(selectActivePeer)!;
 
   const onRemovePeerClicked: React.MouseEventHandler = e => {
     // Prevent event from propagating back up so that nothing happens if any parent elements
@@ -67,7 +68,12 @@ const PeerAvatar: React.FC<PeerAvatarProps> = ({
 
   const onConnectWithPeerClicked: React.MouseEventHandler = e => {
     e.stopPropagation();
-    dispatch(connectWithPeer(peerId));
+
+    if (activePeer.connectedPeers.includes(peerId)) {
+      dispatch(disconnectPeer(peerId));
+    } else {
+      dispatch(connectWithPeer(peerId));
+    }
   };
 
   return (
@@ -85,7 +91,7 @@ const PeerAvatar: React.FC<PeerAvatarProps> = ({
       </span>
       <Paragraph style={{ textOverflow: 'ellipsis' }}>{name}</Paragraph>
       <PeerOptions>
-        {peerId !== activePeerId ? (
+        {peerId !== activePeer.id ? (
           <PeerOption
             hoverColor={connectOptionHoverColor}
             onClick={onConnectWithPeerClicked}

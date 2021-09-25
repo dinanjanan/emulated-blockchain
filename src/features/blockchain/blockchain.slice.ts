@@ -273,7 +273,7 @@ const blockchainSlice = createSlice({
         blocksCollectionAdapter,
       );
     },
-    connectWithPeer(state, { payload: peerId }: { payload: string }) {
+    connectWithPeer(state, { payload: peerId }: { payload: Peer['id'] }) {
       if (!state.peers.activePeer || !state.peers.entities[peerId]) {
         console.error(
           'Invalid information passed to connectWithPeer. Peer with provided id does not exist, or the application is in an unreliable state as the activePeer does not exist.',
@@ -291,6 +291,21 @@ const blockchainSlice = createSlice({
       blockchainSlice.caseReducers.updateBlockChainWithConnectedPeer(state, {
         payload: peerId,
       });
+    },
+    disconnectPeer(state, { payload: peerId }: { payload: Peer['id'] }) {
+      const activePeer = state.peers.entities[state.peers.activePeer];
+      const connectedPeer = state.peers.entities[peerId];
+
+      if (activePeer && connectedPeer) {
+        activePeer.connectedPeers.splice(
+          activePeer.connectedPeers.indexOf(peerId),
+          1,
+        );
+        connectedPeer.connectedPeers.splice(
+          connectedPeer.connectedPeers.indexOf(activePeer.id),
+          1,
+        );
+      }
     },
   },
   extraReducers: builder => {
@@ -455,6 +470,7 @@ export const {
   removePeer,
   setActivePeer,
   connectWithPeer,
+  disconnectPeer,
 } = blockchainSlice.actions;
 
 // Reducer
