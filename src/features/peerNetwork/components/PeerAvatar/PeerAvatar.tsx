@@ -66,10 +66,15 @@ const PeerAvatar: React.FC<PeerAvatarProps> = ({
       );
   };
 
+  const isConnectedToActivePeer: boolean =
+    activePeer.connectedPeers.findIndex(
+      peerConn => peerConn.peerId === peerId,
+    ) !== -1;
+
   const onConnectWithPeerClicked: React.MouseEventHandler = e => {
     e.stopPropagation();
 
-    if (activePeer.connectedPeers.includes(peerId)) {
+    if (isConnectedToActivePeer) {
       dispatch(disconnectPeer(peerId));
     } else {
       dispatch(connectWithPeer(peerId));
@@ -100,8 +105,7 @@ const PeerAvatar: React.FC<PeerAvatarProps> = ({
           </PeerOption>
         ) : null}
 
-        {activePeer.connectedPeers.includes(peerId) ||
-        peerId === activePeer.id ? (
+        {isConnectedToActivePeer || peerId === activePeer.id ? (
           <PeerOption hoverColor={ConnectionStates.connected.color}>
             <i className="far fa-comment-dots" />
           </PeerOption>

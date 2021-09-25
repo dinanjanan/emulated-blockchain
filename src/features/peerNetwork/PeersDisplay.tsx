@@ -160,7 +160,9 @@ const PeersDisplay: React.FC = () => {
                   connectionState={
                     activePeer.id === peer.id
                       ? ConnectionStates.currentlyActive
-                      : activePeer.connectedPeers.includes(peer.id)
+                      : activePeer.connectedPeers.findIndex(
+                          peerConn => peerConn.peerId === peer.id,
+                        ) !== -1
                       ? ConnectionStates.connected
                       : ConnectionStates.disconnected
                   }

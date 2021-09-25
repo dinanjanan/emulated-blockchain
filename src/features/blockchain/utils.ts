@@ -175,37 +175,38 @@ export const updateBlockchainsOfAllConnectedPeers = function (
 ) {
   if (
     sourcePeer.connectedPeers
-      .filter(peerId => peerId !== sourcePeer.id)
+      .filter(({ peerId }) => peerId !== sourcePeer.id)
       .reduce(
-        (prev: boolean, peerId) => prev && alreadyUpdated.includes(peerId),
+        (prev: boolean, peerConn) =>
+          prev && alreadyUpdated.includes(peerConn.peerId),
         true,
       )
   ) {
     return;
   }
 
-  for (const peerId of sourcePeer.connectedPeers) {
-    if (alreadyUpdated.includes(peerId)) {
-      console.log('alreadyUpdated includes peerId #', peerId);
+  for (const peerConn of sourcePeer.connectedPeers) {
+    if (alreadyUpdated.includes(peerConn.peerId)) {
+      console.log('alreadyUpdated includes peerId #', peerConn.peerId);
       continue;
     }
 
     // Mine the block in their copy of the blockchain as well.
-    if (!state.peers.entities[peerId]) {
-      console.error(`Peer #${peerId} doesn't exist.`);
+    if (!state.peers.entities[peerConn.peerId]) {
+      console.error(`Peer #${peerConn.peerId} doesn't exist.`);
       return;
     }
 
-    const peerLatestBlock = getPeerLatestBlock(state, peerId);
+    const peerLatestBlock = getPeerLatestBlock(state, peerConn.peerId);
 
     if (!peerLatestBlock) return;
 
     updateChainOfPeerWithAnother(
       getBlockchainForPeer(state, sourcePeer.id)!,
-      getBlockchainForPeer(state, peerId)!,
+      getBlockchainForPeer(state, peerConn.peerId)!,
       state,
       sourcePeer.id,
-      peerId,
+      peerConn.peerId,
       blocksCollectionAdapter,
     );
 
@@ -213,8 +214,8 @@ export const updateBlockchainsOfAllConnectedPeers = function (
     updateBlockchainsOfAllConnectedPeers(
       state,
       blocksCollectionAdapter,
-      state.peers.entities[peerId]!,
-      [...alreadyUpdated, peerId],
+      state.peers.entities[peerConn.peerId]!,
+      [...alreadyUpdated, peerConn.peerId],
     );
   }
 };
@@ -237,6 +238,8 @@ export const updateChainOfPeerWithAnother = function (
     );
     return;
   }
+
+  // Message: Get latest block from peer
 
   // Check if the peer is one block ahead
   if (peerLatestBlock.previousHash === activePeerLatestBlock.hash) {

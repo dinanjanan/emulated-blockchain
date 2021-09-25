@@ -21,3 +21,10 @@ export const OperationStates = {
   complete: 'complete',
   failed: 'failed',
 } as const;
+
+export const PeerMessageIcons = {
+  connected: 'c',
+  request: 'r',
+  respond: 'res',
+  info: 'i',
+} as const;

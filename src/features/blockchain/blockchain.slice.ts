@@ -3,6 +3,7 @@ import {
   createEntityAdapter,
   createAsyncThunk,
   createSelector,
+  nanoid,
 } from '@reduxjs/toolkit';
 
 import {
@@ -14,14 +15,17 @@ import {
   updateChainOfPeerWithAnother,
   appendBlockCloneToChain,
 } from './utils';
-import { OperationStates } from '../../app/constants';
+import { OperationStates, PeerMessageIcons } from '../../app/constants';
 
 import type { RootState } from '../../index';
-import {
+import type {
   Block,
   Peer,
   PeerToBlockchainMap,
   UnhashedBlock,
+  PeerMessage,
+  PeerInitiatorMessages,
+  PeerReceiverMessages,
 } from './blockchain.types';
 
 type PeerFromAPI = Omit<Peer, 'blockchain'>;
@@ -43,6 +47,8 @@ const initialState = {
     activePeer: '' as string,
   } as ExtendedBlockChainSliceState),
   blockchain: blocksCollectionAdapter.getInitialState(),
+  peerInitiatorMessages: {} as PeerInitiatorMessages,
+  peerReceiverMessages: {} as PeerReceiverMessages,
 
   /**
    * Maps peer ids to an array of their blocks (i.e., their copy of the blockchain)
@@ -273,19 +279,52 @@ const blockchainSlice = createSlice({
       );
     },
     connectWithPeer(state, { payload: peerId }: { payload: Peer['id'] }) {
-      if (!state.peers.activePeer || !state.peers.entities[peerId]) {
+      const activePeer = state.peers.entities[state.peers.activePeer];
+      const peerToConnectWith = state.peers.entities[peerId];
+
+      if (!activePeer) {
         console.error(
-          'Invalid information passed to connectWithPeer. Peer with provided id does not exist, or the application is in an unreliable state as the activePeer does not exist.',
+          'The application is in an unreliable state as the activePeer does not exist.',
         );
+        return;
       }
-      if (peerId === state.peers.activePeer) {
-        console.warn(`The peer to connect with cannot be the active peer.`);
+      if (!peerToConnectWith) {
+        console.error(
+          'Invalid information passed to connectWithPeer. Peer with provided id does not exist.',
+        );
+        return;
+      }
+      if (peerId === activePeer.id) {
+        console.error(`The peer to connect with cannot be the active peer.`);
         return;
       }
 
       // Update the connectedPeers array of both peers
-      state.peers.entities[state.peers.activePeer]?.connectedPeers.push(peerId);
-      state.peers.entities[peerId]?.connectedPeers.push(state.peers.activePeer);
+      activePeer.connectedPeers.push({ peerId, initiated: true });
+      peerToConnectWith.connectedPeers.push({
+        peerId: activePeer.id,
+        initiated: false,
+      });
+
+      // Initialise their communication messages
+      state.peerInitiatorMessages[activePeer.id] = {
+        [peerId]: [
+          {
+            id: nanoid(),
+            message: `Connected to peer ${peerToConnectWith.name}`,
+            iconUrl: PeerMessageIcons.connected,
+          },
+        ],
+      };
+      state.peerReceiverMessages[peerId] = {
+        [activePeer.id]: [
+          {
+            id: nanoid(),
+            message: `${activePeer.name} has connected to you`,
+            iconUrl: PeerMessageIcons.connected,
+          },
+        ],
+      };
 
       blockchainSlice.caseReducers.updateBlockChainWithConnectedPeer(state, {
         payload: peerId,
@@ -297,11 +336,15 @@ const blockchainSlice = createSlice({
 
       if (activePeer && connectedPeer) {
         activePeer.connectedPeers.splice(
-          activePeer.connectedPeers.indexOf(peerId),
+          activePeer.connectedPeers.findIndex(
+            peerConn => peerConn.peerId === peerId,
+          ),
           1,
         );
         connectedPeer.connectedPeers.splice(
-          connectedPeer.connectedPeers.indexOf(activePeer.id),
+          connectedPeer.connectedPeers.findIndex(
+            peerConn => peerConn.peerId === activePeer.id,
+          ),
           1,
         );
       }
