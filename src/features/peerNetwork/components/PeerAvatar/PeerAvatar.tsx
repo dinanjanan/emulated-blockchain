@@ -100,9 +100,12 @@ const PeerAvatar: React.FC<PeerAvatarProps> = ({
           </PeerOption>
         ) : null}
 
-        <PeerOption hoverColor={ConnectionStates.connected.color}>
-          <i className="far fa-comment-dots" />
-        </PeerOption>
+        {activePeer.connectedPeers.includes(peerId) ||
+        peerId === activePeer.id ? (
+          <PeerOption hoverColor={ConnectionStates.connected.color}>
+            <i className="far fa-comment-dots" />
+          </PeerOption>
+        ) : null}
       </PeerOptions>
     </PeerAvatarContainer>
   );
@@ -112,10 +115,3 @@ export default PeerAvatar;
 
 // TODO - Implement the 'connect' and 'view history' buttons under each peer, each with
 // the correct visibility (i.e., 'view history' must only be available when the peer is connected)
-
-// TODO - Implement scrolling through the peers list.
-
-// TODO - Implement loading the blockchain for the new active peer when one of the peer avatars is clicked, as that
-// peer will become the new active peer.
-
-// TODO - Implement the blockchain p2p algorithm.
