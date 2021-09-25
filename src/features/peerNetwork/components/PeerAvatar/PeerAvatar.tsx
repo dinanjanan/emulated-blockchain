@@ -9,7 +9,8 @@ import {
   removePeer,
   selectPeerCount,
   connectWithPeer,
-  selectActivePeerId,
+  disconnectPeer,
+  selectActivePeer,
 } from '../../../blockchain/blockchain.slice';
 
 import {
@@ -23,6 +24,7 @@ type PeerAvatarProps = {
   name: string;
   peerId: string;
   onClick: React.MouseEventHandler<HTMLDivElement>;
+  forwardedRef?: React.ForwardedRef<HTMLDivElement>;
 };
 
 const PeerAvatar: React.FC<PeerAvatarProps> = ({
@@ -30,6 +32,7 @@ const PeerAvatar: React.FC<PeerAvatarProps> = ({
   name,
   peerId,
   onClick,
+  forwardedRef,
 }) => {
   const dispatch = useAppDispatch();
 
@@ -48,7 +51,7 @@ const PeerAvatar: React.FC<PeerAvatarProps> = ({
   }
 
   const numPeers = useAppSelector(selectPeerCount);
-  const activePeerId = useAppSelector(selectActivePeerId);
+  const activePeer = useAppSelector(selectActivePeer)!;
 
   const onRemovePeerClicked: React.MouseEventHandler = e => {
     // Prevent event from propagating back up so that nothing happens if any parent elements
@@ -65,11 +68,17 @@ const PeerAvatar: React.FC<PeerAvatarProps> = ({
 
   const onConnectWithPeerClicked: React.MouseEventHandler = e => {
     e.stopPropagation();
-    dispatch(connectWithPeer(peerId));
+
+    if (activePeer.connectedPeers.includes(peerId)) {
+      dispatch(disconnectPeer(peerId));
+    } else {
+      dispatch(connectWithPeer(peerId));
+    }
   };
 
   return (
     <PeerAvatarContainer
+      ref={forwardedRef}
       color={connectionState.color}
       isSelected
       onClick={onClick}
@@ -82,7 +91,7 @@ const PeerAvatar: React.FC<PeerAvatarProps> = ({
       </span>
       <Paragraph style={{ textOverflow: 'ellipsis' }}>{name}</Paragraph>
       <PeerOptions>
-        {peerId !== activePeerId ? (
+        {peerId !== activePeer.id ? (
           <PeerOption
             hoverColor={connectOptionHoverColor}
             onClick={onConnectWithPeerClicked}
@@ -91,22 +100,15 @@ const PeerAvatar: React.FC<PeerAvatarProps> = ({
           </PeerOption>
         ) : null}
 
-        <PeerOption hoverColor={ConnectionStates.connected.color}>
-          <i className="far fa-comment-dots" />
-        </PeerOption>
+        {activePeer.connectedPeers.includes(peerId) ||
+        peerId === activePeer.id ? (
+          <PeerOption hoverColor={ConnectionStates.connected.color}>
+            <i className="far fa-comment-dots" />
+          </PeerOption>
+        ) : null}
       </PeerOptions>
     </PeerAvatarContainer>
   );
 };
 
 export default PeerAvatar;
-
-// TODO - Implement the 'connect' and 'view history' buttons under each peer, each with
-// the correct visibility (i.e., 'view history' must only be available when the peer is connected)
-
-// TODO - Implement scrolling through the peers list.
-
-// TODO - Implement loading the blockchain for the new active peer when one of the peer avatars is clicked, as that
-// peer will become the new active peer.
-
-// TODO - Implement the blockchain p2p algorithm.

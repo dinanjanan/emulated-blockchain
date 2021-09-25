@@ -22,6 +22,7 @@ const CircleAvatarContainer = styled.div<CircleAvatarContainerProps>`
   margin-bottom: 15px;
   background-color: ${props => props.backgroundColor};
   color: ${props => props.color};
+  transition: background-color 1000ms ease;
 `;
 
 const CircleAvatar = ({ connectionState }: CircleAvatarProps) => {

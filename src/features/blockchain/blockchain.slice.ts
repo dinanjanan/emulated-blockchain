@@ -22,7 +22,7 @@ import {
   Peer,
   PeerToBlockchainMap,
   UnhashedBlock,
-} from './interfaces/blockchain.types';
+} from './blockchain.types';
 
 type PeerFromAPI = Omit<Peer, 'blockchain'>;
 
@@ -38,17 +38,16 @@ const peersAdapter = createEntityAdapter<Peer>();
  */
 const blocksCollectionAdapter = createEntityAdapter<Block>();
 
-/**
- * Maps peer ids to an array of their blocks (i.e., their copy of the blockchain)
- */
-const _peerBlockChainMap: PeerToBlockchainMap = {};
-
 const initialState = {
   peers: peersAdapter.getInitialState({
     activePeer: '' as string,
   } as ExtendedBlockChainSliceState),
   blockchain: blocksCollectionAdapter.getInitialState(),
-  peerBlockChainMap: _peerBlockChainMap,
+
+  /**
+   * Maps peer ids to an array of their blocks (i.e., their copy of the blockchain)
+   */
+  peerBlockChainMap: {} as PeerToBlockchainMap,
   setUpState: OperationStates.pending as keyof typeof OperationStates,
 };
 
@@ -273,7 +272,7 @@ const blockchainSlice = createSlice({
         blocksCollectionAdapter,
       );
     },
-    connectWithPeer(state, { payload: peerId }: { payload: string }) {
+    connectWithPeer(state, { payload: peerId }: { payload: Peer['id'] }) {
       if (!state.peers.activePeer || !state.peers.entities[peerId]) {
         console.error(
           'Invalid information passed to connectWithPeer. Peer with provided id does not exist, or the application is in an unreliable state as the activePeer does not exist.',
@@ -291,6 +290,21 @@ const blockchainSlice = createSlice({
       blockchainSlice.caseReducers.updateBlockChainWithConnectedPeer(state, {
         payload: peerId,
       });
+    },
+    disconnectPeer(state, { payload: peerId }: { payload: Peer['id'] }) {
+      const activePeer = state.peers.entities[state.peers.activePeer];
+      const connectedPeer = state.peers.entities[peerId];
+
+      if (activePeer && connectedPeer) {
+        activePeer.connectedPeers.splice(
+          activePeer.connectedPeers.indexOf(peerId),
+          1,
+        );
+        connectedPeer.connectedPeers.splice(
+          connectedPeer.connectedPeers.indexOf(activePeer.id),
+          1,
+        );
+      }
     },
   },
   extraReducers: builder => {
@@ -455,6 +469,7 @@ export const {
   removePeer,
   setActivePeer,
   connectWithPeer,
+  disconnectPeer,
 } = blockchainSlice.actions;
 
 // Reducer

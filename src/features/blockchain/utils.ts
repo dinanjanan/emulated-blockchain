@@ -3,7 +3,7 @@ import lodash from 'lodash';
 import { WritableDraft } from 'immer/dist/internal';
 import { EntityAdapter, EntityState, nanoid } from '@reduxjs/toolkit';
 
-import type { Block, Peer, UnhashedBlock } from './interfaces/blockchain.types';
+import type { Block, Peer, UnhashedBlock } from './blockchain.types';
 import { BlockchainSliceState } from './blockchain.slice';
 
 /**
