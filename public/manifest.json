@@ -1,6 +1,6 @@
 {
-  "short_name": "Blockchain demo",
-  "name": "Blockchain demo",
+  "short_name": "Emulated Blockchain",
+  "name": "Emulated Blockchain",
   "icons": [
     {
       "src": "favicon.ico",

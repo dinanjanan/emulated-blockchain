@@ -25,7 +25,7 @@ function App() {
   useEffect(() => {
     const dispatchInOrder = async () => {
       await dispatch(fetchPeerData()).unwrap();
-      dispatch(mineBlock('Welcome to Blockchain Demo 2.0!'));
+      dispatch(mineBlock('Time to mine a new block!'));
     };
 
     dispatchInOrder();

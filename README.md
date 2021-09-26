@@ -1,4 +1,4 @@
-# Blockchain demo
+# Emulated Blockchain
 
 ## Overview
 
