@@ -91,21 +91,23 @@ const PeerAvatar: React.FC<PeerAvatarProps> = ({
       </span>
       <Paragraph style={{ textOverflow: 'ellipsis' }}>{name}</Paragraph>
       <PeerOptions>
-        {peerId !== activePeer.id ? (
-          <PeerOption
-            hoverColor={connectOptionHoverColor}
-            onClick={onConnectWithPeerClicked}
-          >
-            <i className="fas fa-link" />
-          </PeerOption>
-        ) : null}
+        {/* {peerId !== activePeer.id ? ( */}
+        <PeerOption
+          show={peerId !== activePeer.id}
+          hoverColor={connectOptionHoverColor}
+          onClick={onConnectWithPeerClicked}
+        >
+          <i className="fas fa-link" />
+        </PeerOption>
+        {/* ) : null} */}
 
-        {activePeer.connectedPeers.includes(peerId) ||
+        {/* Hide the peer messages UI until it's implemented */}
+        {/* {activePeer.connectedPeers.includes(peerId) ||
         peerId === activePeer.id ? (
           <PeerOption hoverColor={ConnectionStates.connected.color}>
             <i className="far fa-comment-dots" />
           </PeerOption>
-        ) : null}
+        ) : null} */}
       </PeerOptions>
     </PeerAvatarContainer>
   );

@@ -14,7 +14,7 @@ export const PeersDisplayContainer = styled.div`
 export const PeersList = styled.div`
   display: flex;
   justify-content: flex-start;
-  align-items: center;
+  align-items: flex-start;
   margin-left: 20px;
   width: calc(100vw - 320px);
   overflow-y: hidden;
@@ -50,14 +50,9 @@ export const PeersListContainer = styled.div`
 `;
 
 export const SideChevronContainer = styled.div`
-  padding: 5px 7px;
+  padding: 5px 7px 50px;
   cursor: pointer;
   z-index: 5;
 `;
 
 export const Masked = styled.div``;
-
-/**
- * When the right chevron is clicked, the view must move to the left, making room for one more peer avatar on
- * the right hand side of the peer list, and vice versa.
- */

@@ -14,7 +14,7 @@ export const GlobalStyles = createGlobalStyle`
   }
 
   ::-webkit-scrollbar {
-    width: 5px;
+    width: 10px;
     height: 5px;
   }
 
@@ -31,7 +31,7 @@ export const GlobalStyles = createGlobalStyle`
     background-color: #f9f9fb;
     color: rgba(0, 0, 0, 0.65);
     font-family: 'IBM Plex Sans', sans-serif;
-    padding: 20px 60px 50px;
+    padding: 40px 60px 300px;
     /* overflow: hidden; */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

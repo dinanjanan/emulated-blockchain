@@ -14,10 +14,9 @@ import PeersDisplay from './features/peerNetwork/PeersDisplay';
 
 import Logo from './components/Logo/Logo';
 import Title from './components/Title/Title';
-import Credits from './components/Credits/Credits';
 
 import { AppContainer } from './styles/App.styles';
-import { GlobalStyles } from './styles/Global.styles';
+import Paragraph from './components/Paragraph/Paragraph';
 
 function App() {
   const blockchainSetUpState = useAppSelector(selectBlockChainSetUpState);
@@ -27,31 +26,35 @@ function App() {
     const dispatchInOrder = async () => {
       await dispatch(fetchPeerData()).unwrap();
       dispatch(mineBlock('Welcome to Blockchain Demo 2.0!'));
-
-      // Trigger mining of the genesis block
-      // blockchainSlice.caseReducers.mineBlock(state, {
-      //   payload: 'Welcome to Blockchain Demo 2.0!',
-      // });
     };
 
     dispatchInOrder();
   }, [dispatch]);
 
   if (blockchainSetUpState === OperationStates.pending) {
-    return <h2>Loading...</h2>;
+    return <div />;
   } else if (blockchainSetUpState === OperationStates.failed) {
-    return <h2>An error occurred.</h2>;
+    return (
+      <Paragraph
+        style={{
+          position: 'absolute',
+          top: '50vh',
+          left: '50vw',
+          transform: 'translate(-50%, -50%)',
+        }}
+      >
+        An error occurred. Please try reloading the page
+      </Paragraph>
+    );
   }
 
   return (
     <AppContainer>
-      <GlobalStyles />
       <Logo />
       <PeersDisplay />
       <Title heading>BLOCKCHAIN</Title>
       <BlockChainDisplay />
       <AddNewBlock />
-      <Credits />
     </AppContainer>
   );
 }

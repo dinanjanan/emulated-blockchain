@@ -7,6 +7,7 @@ type PeerAvatarContainerProps = {
 
 type PeerOptionProps = {
   hoverColor: string;
+  show: boolean;
 };
 
 export const PeerAvatarContainer = styled.div<PeerAvatarContainerProps>`
@@ -55,7 +56,8 @@ export const PeerOption = styled.div<PeerOptionProps>`
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 500ms ease;
+  opacity: ${props => (props.show ? '1.0' : '0.0')};
+  transition: all 300ms ease-out;
 
   &:hover {
     color: ${props => props.hoverColor};
