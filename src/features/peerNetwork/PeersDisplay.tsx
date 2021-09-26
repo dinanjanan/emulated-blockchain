@@ -25,7 +25,7 @@ const PeersDisplay: React.FC = () => {
 
   const peers = useAppSelector(selectAllPeers);
   const activePeer = useAppSelector(selectActivePeer)!;
-  // console.log('peers:', peers);
+  console.log('peers:', peers);
 
   const [prevPeersLength, setPrevPeersLength] = useState(peers.length);
   const [, setPeersListWidth] = useState(0);

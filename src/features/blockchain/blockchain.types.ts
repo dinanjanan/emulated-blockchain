@@ -19,16 +19,7 @@ export type PeerToBlockchainMap = {
 export type Peer = {
   id: string;
   name: string;
-  /**
-   * Connected peers in chronological order of time of connection.
-   */
   connectedPeers: Peer['id'][];
-  /**
-   * Peers that connected to this peer.
-   * Used to broadcast changes to all peers that have connected to this peer.
-   * Maintained in tandem with connectedPeers
-   */
-  // peersThatConnected: Peer['id'][];
 };
 
 export type Peers = {

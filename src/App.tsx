@@ -43,7 +43,8 @@ function App() {
           transform: 'translate(-50%, -50%)',
         }}
       >
-        An error occurred. Please try reloading the page
+        An error occurred. Please try reloading the page. <br /> If that doesn't
+        work, you may have lost your connection to the internet...
       </Paragraph>
     );
   }
