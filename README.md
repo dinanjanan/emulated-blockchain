@@ -10,4 +10,4 @@ I went with `@reduxjs/toolkit` for this project to see how such an app could be 
 
 ## Running the application
 
-No third-party build systems or task runners are used other than webpack and babel which are abstracted away by `create-react-app`. So, simply run `yarn start` to start the webpack development server, and `yarn build` to create a production build.
+No build systems or task runners are used other than webpack and babel (which are abstracted away by `create-react-app`). So, simply run `yarn start` to start the webpack development server, and `yarn build` to create a production build.
